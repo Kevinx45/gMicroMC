@@ -9,13 +9,13 @@
 #include <string.h>
 #include <iostream>
 using namespace std;
-
 #include <ctime>
 #include <cuda.h>
 #include <cuda_runtime.h>
-
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include "global.h"
+#include "DNAList.h"
 
 
 #define MAXNUMPAR 131072 //1048576 //524288 // maximum particles at one time
@@ -49,7 +49,7 @@ using namespace std;
 #define NTHREAD_PER_BLOCK_PAR_META 256 //overlap
 #define NTHREAD_PER_BLOCK_BIN 64
 
-#define PI 3.1415926535897932384626433
+//#define PI 3.1415926535897932384626433
 
 //#define PROCESS_TIME 2.3e3  // 1ns
 /******************************************************************************************************
@@ -78,7 +78,7 @@ __constant__ float min1=-14.5238, min2 =-14.4706, min3 = -32.0530, max1 = 14.523
 #define RHISTONE 3.13
 #define RSUGAR 0.431
 
-#define CUDA_CALL(x) do{if(x != cudaSuccess){printf("CUDA Error at %s:%d\n",__FILE__,__LINE__);return;}}while(0)
+//#define CUDA_CALL(x) do{if(x != cudaSuccess){printf("CUDA Error at %s:%d\n",__FILE__,__LINE__);return;}}while(0)
 
 // typedef struct
 // { 
@@ -93,22 +93,22 @@ typedef struct
     float3 dir;
 } DNAsegment;
 
-typedef struct
-{ 
-    float e;
-    float3 position;
-} Edeposit;
+//typedef struct
+//{ 
+//    float e;
+//    float3 position;
+//} Edeposit;
 
-typedef struct
-{
-	int x, y, z, w;//DNA index, base index, left or right, damage type
-}chemReact;
+//typedef struct
+//{
+//	int x, y, z, w;//DNA index, base index, left or right, damage type
+//}chemReact;
 
-typedef struct
-{
-	chemReact site;
-	float prob1,prob2;
-}combinePhysics;
+//typedef struct
+//{
+//	chemReact site;
+//	float prob1,prob2;
+//}combinePhysics;
 
 __constant__  float d_rDNA[6]={0};
 chemReact* recordposition;
@@ -117,27 +117,27 @@ __device__ int d_totalspace=25000;
 int totalspace=25000;
 float rDNA[6];
 
-struct compare_dnaindex
-{
-    __host__ __device__ bool operator()(chemReact a, chemReact b)
-    {
-        return a.x < b.x;
-    }
-};
-struct compare_baseindex
-{
-    __host__ __device__ bool operator()(chemReact a, chemReact b)
-    {
-        return a.y < b.y;
-    }
-};
-struct compare_boxindex
-{
-    __host__ __device__ bool operator()(combinePhysics a, combinePhysics b)
-    {
-        return a.site.x < b.site.x;
-    }
-};
+//struct compare_dnaindex
+//{
+//    __host__ __device__ bool operator()(chemReact a, chemReact b)
+//    {
+//        return a.x < b.x;
+//    }
+//};
+//struct compare_baseindex
+//{
+//    __host__ __device__ bool operator()(chemReact a, chemReact b)
+//    {
+//        return a.y < b.y;
+//    }
+//};
+//struct compare_boxindex
+//{
+//    __host__ __device__ bool operator()(combinePhysics a, combinePhysics b)
+//    {
+//        return a.site.x < b.site.x;
+//    }
+//};
 compare_dnaindex compare1;
 compare_baseindex compare2;
 compare_boxindex compare3;
