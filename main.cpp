@@ -9,6 +9,7 @@
 #include "prechemical.h"
 #include "chemical.h"
 #include "DNAList.h"
+#include "microMC_chem.h"
 
 
 int verbose, NPART, NRAND, NTHREAD_PER_BLOCK, deviceIndex;
