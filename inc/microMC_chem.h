@@ -15,8 +15,8 @@ using namespace std;
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 
-#include "global.h"
-#include "DNAList.h"
+//#include "global.h"
+//#include "DNAList.h"
 
 #define MAXNUMPAR 131072 //1048576 //524288 // maximum particles at one time
 #define MAXNUMPAR2 MAXNUMPAR*3 //maximum particles to be stored on GPU (current particles including dead ones and new ones in a reaction)
