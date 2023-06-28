@@ -20,7 +20,7 @@ using namespace std;
 
 #define MAXNUMPAR 131072 //1048576 //524288 // maximum particles at one time
 #define MAXNUMPAR2 MAXNUMPAR*3 //maximum particles to be stored on GPU (current particles including dead ones and new ones in a reaction)
-#define MAXNUMNZBIN 2000000 //maximum number of non-zero bins
+#define MAXNUMNZBINMETA 2000000 //maximum number of non-zero bins, overlap 
 
 //parameters for DNA damage analysis
 #define EMIN 17.5
@@ -46,7 +46,7 @@ using namespace std;
 #define NUMOUTPUTMEM 20
 #define NUMSTEPSPEROUTPUT 50
 
-#define NTHREAD_PER_BLOCK_PAR 256
+#define NTHREAD_PER_BLOCK_PAR_META 256 //overlap
 #define NTHREAD_PER_BLOCK_BIN 64
 
 #define PI 3.1415926535897932384626433
@@ -55,14 +55,14 @@ using namespace std;
 /******************************************************************************************************
 *******************************************************************************************************
 ******************************************************************************************************/
-#define NUCLEUS_DIM 67 //# of bins cylinder
+#define NUCLEUS_DIM_META 67 //# of bins cylinder, overlap 
 #define NUCLEUS_DIM_Z 42 // height of the cylinder
-#define STRAIGHT_BP_NUM 200
-#define BEND_BP_NUM 200
+#define STRAIGHT_BP_NUM_META 200 //overlap
+#define BEND_BP_NUM_META 200 //overlap
 #define SEGMENT_BP_NUM 17
-#define BEND_HISTONE_NUM 1
-#define STRAIGHT_HISTONE_NUM 1
-#define UNITLENGTH 11
+#define BEND_HISTONE_NUM_META 1 //overlap
+#define STRAIGHT_HISTONE_NUM_META 1 //overlap
+#define UNITLENGTH_META 11 //overlap
 #define NUMCHROMOSOMES 46
 #define CYLINDERRADIUS ((NUCLEUS_DIM * UNITLENGTH) / 2)
 #define CYLINDERHEIGHT (NUCLEUS_DIM_Z * UNITLENGTH)
@@ -80,10 +80,10 @@ __constant__ float min1=-14.5238, min2 =-14.4706, min3 = -32.0530, max1 = 14.523
 
 #define CUDA_CALL(x) do{if(x != cudaSuccess){printf("CUDA Error at %s:%d\n",__FILE__,__LINE__);return;}}while(0)
 
-typedef struct
-{ 
-    float3 base, right, left;
-} CoorBasePair;
+// typedef struct
+// { 
+//     float3 base, right, left;
+// } CoorBasePair; 
 
 typedef struct
 { 
