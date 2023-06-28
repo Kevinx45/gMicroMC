@@ -283,7 +283,7 @@ FILE *fp_output, *fp_counter;
 // seed to generate random numbers
 int* iseed1_h;///[MAXNUMPAR2];
 int* iseed1;//[MAXNUMPAR2];
-__device__ curandState_META cuseed[MAXNUMPAR2];
+__device__ curandState cuseed_META[MAXNUMPAR2];
 
 //functions
 void initGPUVariables(ChemistrySpec *chemistrySpec, ReactionType *reactType, ParticleData *parData);
