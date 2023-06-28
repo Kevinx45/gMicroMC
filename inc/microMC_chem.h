@@ -67,8 +67,8 @@ using namespace std;
 #define CYLINDERRADIUS ((NUCLEUS_DIM * UNITLENGTH) / 2)
 #define CYLINDERHEIGHT (NUCLEUS_DIM_Z * UNITLENGTH)
 #define TOTALBP 25633020
-__constant__  int neighborindex[27]={0};
-__constant__ float min1=-14.5238, min2 =-14.4706, min3 = -32.0530, max1 = 14.5238, max2 = 14.4706, max3=31.8126;
+// __constant__  int neighborindex[27]={0};
+// __constant__ float min1=-14.5238, min2 =-14.4706, min3 = -32.0530, max1 = 14.5238, max2 = 14.4706, max3=31.8126;
 
 
 
