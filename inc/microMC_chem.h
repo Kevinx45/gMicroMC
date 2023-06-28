@@ -14,9 +14,9 @@ using namespace std;
 #include <cuda_runtime.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+
 #include "global.h"
 #include "DNAList.h"
-
 
 #define MAXNUMPAR 131072 //1048576 //524288 // maximum particles at one time
 #define MAXNUMPAR2 MAXNUMPAR*3 //maximum particles to be stored on GPU (current particles including dead ones and new ones in a reaction)
@@ -283,7 +283,7 @@ FILE *fp_output, *fp_counter;
 // seed to generate random numbers
 int* iseed1_h;///[MAXNUMPAR2];
 int* iseed1;//[MAXNUMPAR2];
-__device__ curandState cuseed[MAXNUMPAR2];
+__device__ curandState_META cuseed[MAXNUMPAR2];
 
 //functions
 void initGPUVariables(ChemistrySpec *chemistrySpec, ReactionType *reactType, ParticleData *parData);
