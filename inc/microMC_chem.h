@@ -243,14 +243,14 @@ float *d_posx_sd, *d_posy_sd, *d_posz_sd; // variables to store the sorted parti
 int *d_index;
 unsigned char *d_ptype, *d_ptype_s; //since for diffusion step, particle type doesn't change, hence no need to have d_ptype_d and d_ptype_sd
 
-texture<float,1,cudaReadModeElementType> posx_tex;
-texture<float,1,cudaReadModeElementType> posy_tex;
-texture<float,1,cudaReadModeElementType> posz_tex;
-texture<unsigned char,1,cudaReadModeElementType> ptype_tex;
+//texture<float,1,cudaReadModeElementType> posx_tex;
+//texture<float,1,cudaReadModeElementType> posy_tex;
+//texture<float,1,cudaReadModeElementType> posz_tex;
+//texture<unsigned char,1,cudaReadModeElementType> ptype_tex;
 
-texture<float,1,cudaReadModeElementType> posx_d_tex;
-texture<float,1,cudaReadModeElementType> posy_d_tex;
-texture<float,1,cudaReadModeElementType> posz_d_tex;
+//texture<float,1,cudaReadModeElementType> posx_d_tex;
+//texture<float,1,cudaReadModeElementType> posy_d_tex;
+//texture<float,1,cudaReadModeElementType> posz_d_tex;
 	
 //gpu global variables used during simulation
 unsigned char *d_statusPar; // 0: live; -1: dead particles, had reactions to generate new particles; 1: new particles generated in reactions at current time step.
