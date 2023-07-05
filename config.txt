@@ -67,6 +67,7 @@
 	"fileForOutput":"./output/prechemRes.dat",
 
 //chemical stage	
+	"testSwitch":0,
 	"fileForSpecInfo":"./tables/chem/RadiolyticSpecies.txt",
 	"fileForReactionInfo":"./tables/chem/Type1_ReactionInfo.txt",
 	"useConstantRadius":0, // reaction radius changes with time step? 1 for no 0 for yes
