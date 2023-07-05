@@ -73,23 +73,23 @@ int main()
 
 	if(document["startStage"].GetInt()<3)
 	{	
-		if(document[testSwitch].GetInt == 0)
+		if(document["testSwitch"].GetInt == 0)
 		{
-		cout << "G0/G1 Phase"
+		cout << "G0/G1 Phase";
 		cl.readIniRadicals();
 		cl.copyDataToGPU();	
 		cl.run(ddl); // saveResutls function is called on the fly -- concurrent method 
 		}
 		else if(document[testSwitch].GetInt == 1)
 		{
-		cout << "Metaphase"
+		cout << "Metaphase";
 		cl.readIniRadicals();
 		cl.copyDataToGPU();	
 		cl.run(ddl); // saveResutls function is called on the fly -- concurrent method 
 		}
 		else
 		{
-		cout << "Invalid Output"
+		cout << "Invalid Output";
 		}
 	}
 
