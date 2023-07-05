@@ -80,7 +80,7 @@ int main()
 		cl.copyDataToGPU();	
 		cl.run(ddl); // saveResutls function is called on the fly -- concurrent method 
 		}
-		else if(document[testSwitch].GetInt == 1)
+		else if(document["testSwitch"].GetInt == 1)
 		{
 		cout << "Metaphase";
 		cl.readIniRadicals();
