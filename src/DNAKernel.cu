@@ -629,7 +629,7 @@ void DNAList::run()
 	combinePhysics* d_recordc;
 	CUDA_CALL(cudaMalloc((void**)&d_recordc,sizeof(combinePhysics)*totalchem));
 
-	std::int simMode = document["simMode"].GetInt();
+	int simMode = document["simMode"].GetInt();
 
 	if(simMode == 0)
 	{
