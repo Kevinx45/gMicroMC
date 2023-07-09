@@ -9,33 +9,12 @@ PrechemList::PrechemList()
 
 PrechemList::~PrechemList()
 {
-	free(pb_rece);
-	free(pb_wi); 
-	free(pb_we_a1b1);
-	free(pb_we_b1a1);
-	free(pb_we_rd);
-	free(pb_w_dis);	
-	free(btype_rece);
-	free(btype_wi);
-	free(btype_we_a1b1);
-	free(btype_we_b1a1);
-	free(btype_we_rd);
-	free(btype_w_dis);	
-	free(num_product_btype);
-	free(ptype_product_btype);
-	free(placeinfo_btype);
 
-	free(p_recomb_elec);
-	free(rms_therm_elec);
-
-	free(posx);
-	free(posy);
-	free(posz);
-	free(ene);
-	free(ttime);
-	free(statetype);
-	free(index);
-	free(wiid_elec);
+	free(electron_container);
+	free(ion_container);
+	free(ion_tag);
+	free(ion_index);
+	free(elec_index);
 }
 
 void PrechemList::readBranchInfo(std::string fname)
@@ -45,121 +24,92 @@ void PrechemList::readBranchInfo(std::string fname)
     printf("\n\nloading %s\n", fname.c_str());
 	
 	fgets(buffer, 250, fp);	
-	fscanf(fp, "%d\n", &nbtype);
-	num_product_btype = (int*) malloc(sizeof(int) * nbtype);
-	ptype_product_btype = (int*) malloc(sizeof(int) * nbtype * MAXNUMBRANCHPROD);	
+	fscanf(fp, "%d\n", &nbrantype);
+	fgets(buffer, 250, fp);	
+	fscanf(fp, "%d\n", &max_prod_bran);
+	cudaMallocManaged(&num_prod_bran,sizeof(int) * nbrantype);
+	cudaMallocManaged(&prodtype_bran,sizeof(int) * nbrantype * max_prod_bran);	
+
 	fgets(buffer, 250, fp);
-	
 	int temp, i, k;	
-	for(i=0; i<nbtype; i++)
+	for(i=0; i<nbrantype; i++)
 	{
-	  fscanf(fp, "%d %d", &temp, &num_product_btype[i]);
-	  for(k=0; k<num_product_btype[i]; k++)
+	  fscanf(fp, "%d %d", &temp, &num_prod_bran[i]);
+	  for(k=0; k<num_prod_bran[i]; k++)
 	  {
-	    fscanf(fp, "%d", &ptype_product_btype[i* MAXNUMBRANCHPROD + k]);
+	    fscanf(fp, "%d", &prodtype_bran[i* max_prod_bran + k]);
 	  }
 	}
 	fscanf(fp, "\n");
 
-	placeinfo_btype = (float*)malloc(sizeof(float) * nbtype * 9);
+	fgets(buffer, 250, fp);
+	fscanf(fp, "%d\n", &num_replace_bran);
 
+	cudaMallocManaged(&para_replace_bran,sizeof(float) * nbrantype * num_replace_bran);
 	fgets(buffer, 250, fp);
-	fgets(buffer, 250, fp);
-	
-    for(i=0; i<nbtype; i++)
+    for(i=0; i<nbrantype; i++)
 	{
 	    fscanf(fp, "%d", &temp);
-		for(k=0; k<9; k++)
+		for(k=0; k<num_replace_bran; k++)
 		{
-		    fscanf(fp, "%f", &placeinfo_btype[i*9+k]);
+		    fscanf(fp, "%f", &para_replace_bran[i*num_replace_bran+k]);
 		}
-	}
+		fscanf(fp, "\n");
+	}	
 	
-	// loading the branches info for recombined electrons
-	fscanf(fp, "\n");
-	fgets(buffer, 250, fp);
-	fscanf(fp, "%d", &nb_rece);	
-	pb_rece = (float*) malloc(sizeof(float) * nb_rece);
-	btype_rece = (int*) malloc(sizeof(int) * nb_rece);	
-	for(i=0; i<nb_rece; i++)
+
+	fgets(buffer, 250, fp);	
+	fscanf(fp, "%d\n", &nparentype);
+	fgets(buffer, 250, fp);	
+	fscanf(fp, "%d\n", &max_bran_paren);
+
+	cudaMallocManaged(&num_bran_paren,sizeof(int) * nparentype);
+	cudaMallocManaged(&brantype_paren,sizeof(int) * nparentype * max_bran_paren);
+	cudaMallocManaged(&branratio_paren,sizeof(float) * nparentype * max_bran_paren);
+	
+	for(i=0; i<nparentype; i++)
 	{
-	  fscanf(fp, "%d %f", &btype_rece[i], &pb_rece[i]);
+	  fgets(buffer, 250, fp);
+	  fscanf(fp, "%d %d", &temp, &num_bran_paren[i]);
+	  
+	  for(k=0; k<num_bran_paren[i]; k++)
+	  {
+	    fscanf(fp, "%d %f", &brantype_paren[i* max_bran_paren + k], &branratio_paren[i* max_bran_paren + k]);
+	   }
+	  fscanf(fp, "\n");
 	}
 
-	// loading the branches info for ionized water molecule
-	fscanf(fp, "\n");
-	fgets(buffer, 250, fp);
-	fscanf(fp, "%d", &nb_wi);	
-	pb_wi = (float*) malloc(sizeof(float) * nb_wi);
-	btype_wi = (int*) malloc(sizeof(int) * nb_wi);	
-	for(i=0; i<nb_wi; i++)
-	{
-	  fscanf(fp, "%d %f", &btype_wi[i], &pb_wi[i]);
-	}
-	
-	// loading the branches info for A1B1 excited water molecule
-	fscanf(fp, "\n");
-	fgets(buffer, 250, fp);
-	fscanf(fp, "%d", &nb_we_a1b1);
-	pb_we_a1b1 = (float*)malloc(sizeof(float) * nb_we_a1b1);
-	btype_we_a1b1 = (int*)malloc(sizeof(int) * nb_we_a1b1);	
-	for(i=0; i<nb_we_a1b1; i++)
-	{
-	  fscanf(fp, "%d %f", &btype_we_a1b1[i], &pb_we_a1b1[i]);
-	}
-	
-	// loading the branches info for B1A1 excited water molecule
-	fscanf(fp, "\n");
-	fgets(buffer, 250, fp);
-	fscanf(fp, "%d", &nb_we_b1a1);
-	pb_we_b1a1 = (float*)malloc(sizeof(float) * nb_we_b1a1);
-	btype_we_b1a1 = (int*)malloc(sizeof(int) * nb_we_b1a1);	
-	for(i=0; i<nb_we_b1a1; i++)
-	{
-	  fscanf(fp, "%d %f", &btype_we_b1a1[i], &pb_we_b1a1[i]);
-	}
-	
-	// loading the branches info for the excited water molecule with Rydberg and diffusion bands
-	fscanf(fp, "\n");
-	fgets(buffer, 250, fp);
-	fscanf(fp, "%d", &nb_we_rd);	
-	pb_we_rd = (float*)malloc(sizeof(float) * nb_we_rd);
-	btype_we_rd = (int*)malloc(sizeof(int) * nb_we_rd);	
-	for(i=0; i<nb_we_rd; i++)
-	{
-	  fscanf(fp, "%d %f", &btype_we_rd[i], &pb_we_rd[i]);
-	}
-	
-	// loading the branches info for the dissociative water molecule 
-	fscanf(fp, "\n");
-	fgets(buffer, 250, fp);	
-	fscanf(fp, "%d", &nb_w_dis);
-	pb_w_dis = (float*)malloc(sizeof(float) * nb_w_dis);
-	btype_w_dis = (int*)malloc(sizeof(int) * nb_w_dis);	
-	for(i=0; i<nb_w_dis; i++)
-	{
-	  fscanf(fp, "%d %f", &btype_w_dis[i], &pb_w_dis[i]);
-	}
-	fclose(fp);
 
 	if(verbose>1)
 	{
 		printf("Information is listed in the following\n");
-		printf("number of branches\n%d\n",nbtype);
-		for(i =0; i<nbtype;i++)
+		printf("number of branches\n%d\n",nbrantype);
+		for(i =0; i<nbrantype;i++)
 		{
-			printf("type %d has %d products: ", i, num_product_btype[i]);
-			for(k=0;k<num_product_btype[i];k++)
+			printf("type %d has %d products: ", i, num_prod_bran[i]);
+			for(k=0;k<num_prod_bran[i];k++)
 			{
-				printf("%d ", ptype_product_btype[i*MAXNUMBRANCHPROD+k]);
+				printf("%d ", prodtype_bran[i*max_prod_bran+k]);
+			}
+			printf("\n");
+			printf("type %d has %d parameters for product displacement: ", i, num_replace_bran);
+			for(k=0;k<num_replace_bran;k++)
+			{
+				printf("%f ", para_replace_bran[i*num_replace_bran+k]);
 			}
 			printf("\n");
 		}
 		
-		printf("Brach types information for recombined electrons\n");
-		for(i =0; i<nb_rece;i++)
+		printf("number of parent molecule types: %d\n", nparentype);
+		printf("maximum branch types per parent molecule: %d\n", max_bran_paren);
+		for(i =0; i<nparentype;i++)
 		{
-			printf("    Branch %d prob %f\n", btype_rece[i], pb_rece[i]);
+			printf("parent type %d has %d number of branches: ", i, num_bran_paren[i]);
+			for(k=0;k<num_bran_paren[i];k++)
+			{
+				printf("%d %f ", brantype_paren[i*max_bran_paren+k], branratio_paren[i* max_bran_paren + k]);
+			}
+			printf("\n");
 		}
 	}
 }
@@ -171,31 +121,44 @@ void PrechemList::readThermRecombInfo(std::string fname)
     printf("\n\nloading %s\n", fname.c_str());
 	
 	fgets(buffer, 250, fp);
-	fscanf(fp, "%d\n", &nebin);	
+	fscanf(fp, "%f\n", &Ecut_recom);	
 	
-	p_recomb_elec = (float*)malloc(sizeof(float) * nebin);
-	rms_therm_elec = (float*)malloc(sizeof(float) * nebin);	
-	float *temp = (float*)malloc(sizeof(float) * nebin); // for energy entries
+	fgets(buffer, 250, fp);
+	fscanf(fp, "%d %d\n", &num_para_recom[0],&num_para_recom[1]);
+
+	cudaMallocManaged(&pro_recom, sizeof(float) * num_para_recom[0]);	
+	cudaMallocManaged(&rms_therm_elec, sizeof(float) * num_para_recom[1]);
 
 	fgets(buffer, 250, fp);
-	for(int i=0; i<nebin; i++)
+	for(int i=0; i<num_para_recom[0]; i++)
 	{
-	    fscanf(fp, "%f %f %f\n", &temp[i], &p_recomb_elec[i], &rms_therm_elec[i]);
+	    fscanf(fp, "%f", &pro_recom[i]);
+	}
+	fscanf(fp, "\n");
+	fgets(buffer, 250, fp);
+	for(int i=0; i<num_para_recom[1]; i++)
+	{
+	    fscanf(fp, "%f", &rms_therm_elec[i]);
 	}
 	fclose(fp);
-
-	mine_ebin = temp[0];
-	ide_ebin = 1.0f/(temp[1]-temp[0]);	
-	free(temp);
 
 	if(verbose>1)
 	{
 		printf("Information is listed in the following\n");
-		printf("There are %d entries for thermolizing electrons\n",nebin);
-		/*for(int i=0;i<nebin;i++)
+		printf("There are %d parameters for the electron hole recombination probability\n",num_para_recom[0]);
+		printf("probability parameters: ");
+		for(int i=0;i<num_para_recom[0];i++)
 		{
-			printf("energy %f prob %f rms %f nm\n",mine_ebin+i/ide_ebin,p_recomb_elec[i], rms_therm_elec[i]);
-		}*/
+			printf("%f ",pro_recom[i]);
+		}
+		printf("\n");
+		printf("There are %d parameters for the electron migration rms calculation\n",num_para_recom[0]);
+		printf("rms parameters: ");
+		for(int i=0;i<num_para_recom[1];i++)
+		{
+			printf("%f ",rms_therm_elec[i]);
+		}
+		printf("\n");
 	}
 }
 
@@ -210,21 +173,23 @@ void PrechemList::readWaterStates()
 	fseek (fpfloat, 0, SEEK_END);
 	stop = ftell(fpfloat);
 	fseek (fpfloat, 0, SEEK_SET);
-	printf("start=%d, end=%d",start,stop);
-	num_total = (stop-start)/4/5;
+	printf("water state start=%d, end=%d\n",start,stop);
+	num_total_paren = (stop-start)/4/5;
 
-	int* phyint = (int*)malloc(sizeof(int) * num_total*4);
-	float* phyfloat = (float*)malloc(sizeof(float) * num_total*5);
+	int* phyint = (int*)malloc(sizeof(int) * num_total_paren*4);
+	float* phyfloat = (float*)malloc(sizeof(float) * num_total_paren*5);
 	if(phyfloat && phyint)
 	{
-		fread(phyint,sizeof(int),4*num_total,fpint);
-		fread(phyfloat,sizeof(float),5*num_total,fpfloat);
+		fread(phyint,sizeof(int),4*num_total_paren,fpint);
+		fread(phyfloat,sizeof(float),5*num_total_paren,fpfloat);
 	}
 	else
 	{
 		printf("Wrong input!!!\n");
 		exit(1);
 	}
+	int num_elec, num_wi,num_we_a1b1, num_we_b1a1,num_we_rd, num_w_dis; //number of solvated electrons, etc.
+
 	fread(&num_elec,sizeof(int),1,fpint);
 	fread(&num_wi,sizeof(int),1,fpint);
 	fread(&num_we_a1b1,sizeof(int),1,fpint);
@@ -235,152 +200,230 @@ void PrechemList::readWaterStates()
 	fclose(fpint);
 	fclose(fpfloat);
 	
-	printf("the total number of initial reactant is %d\n", num_total);
-
-	sidx_elec = 0; // starting index for the solvated electrons in the particle array
-	sidx_wi = num_elec;
-	sidx_we_a1b1 = sidx_wi + num_wi; 
-	sidx_we_b1a1 = sidx_we_a1b1 + num_we_a1b1; 
-	sidx_we_rd = sidx_we_b1a1 + num_we_b1a1; 
-	sidx_w_dis = sidx_we_rd + num_we_rd; 
+	printf("the total number of initial reactant is %d\n", num_total_paren);
+	printf("num_elec=%d, num_wi=%d, num_we_a1b1=%d, num_we_b1a1=%d, num_we_rd=%d, num_w_dis=%d\n", num_elec, num_wi, num_we_a1b1, num_we_b1a1, num_we_rd, num_w_dis);
 	
-	index = (int*) malloc(sizeof(int) * num_total);
-	statetype = (int*)malloc(sizeof(int) * num_total);
-	posx = (float*)malloc(sizeof(float) * num_total);
-	posy = (float*)malloc(sizeof(float) * num_total);
-	posz = (float*)malloc(sizeof(float) * num_total);
-	ene = (float*)malloc(sizeof(float) * num_total);
-	ttime = (float*)malloc(sizeof(float) * num_total);
- 		
-	wiid_elec = (int*)malloc(sizeof(int) * num_elec); 		
-	int *tag_wiid = (int*)malloc(sizeof(int)*num_wi);
-	memset(tag_wiid, 0, num_wi);
+	cudaMallocManaged(&type_paren, sizeof(int) * num_total_paren*3);
+	cudaMallocManaged(&posx_paren, sizeof(float) * num_total_paren*3);
+	cudaMallocManaged(&posy_paren, sizeof(float) * num_total_paren*3);
+	cudaMallocManaged(&posz_paren, sizeof(float) * num_total_paren*3);
+	cudaMallocManaged(&ene_paren, sizeof(float) * num_total_paren);
+	cudaMallocManaged(&ttime_paren, sizeof(float) * num_total_paren*3);
+	cudaMallocManaged(&index_paren, sizeof(int) * num_total_paren*3);
 
-	float penergy, parposX, parposY, parposZ, etime;
-    int parID, ptype, stype;	
+	for (int l=0;l<num_total_paren*3;l++) //for (int l=num_total_paren;l<num_total_paren*3;l++) Change 20-03-2023
+	{
+		type_paren[l]=255;
+	}
+
+	int eleN=5;
+	electron_container=(float*)malloc(sizeof(float)*eleN*(num_elec+num_w_dis));
+ 	ion_container=(float*)malloc(sizeof(float)*eleN*num_wi);	
+ 	ion_tag=(int*)malloc(sizeof(int)*num_wi);
+ 	ion_index=(int*)malloc(sizeof(int)*num_wi);
+ 	elec_index=(int*)malloc(sizeof(int)*(num_elec+num_w_dis));
 	
 	int idx_elec = 0;
 	int idx_wi = 0;
-	int idx_we_a1b1 = 0;
-	int idx_we_b1a1 = 0;
-	int idx_we_rd = 0; 
-	int idx_w_dis = 0;
-
-	for(int i = 0; i < num_total; i++)
+	int idx_excite=0;
+	int ptype,stype,index, tempnum;
+	float tempe,tempx,tempy,tempz,tempt;
+	float temprand;
+	for(int i = 0; i < num_total_paren; i++)
 	{
-        if (i%10000==0)printf("i = %d/%d\n", i, num_total);
+        if (i%10000==0)printf("i = %d, %d\n", i, num_total_paren);
 
-	    parID=phyint[4*i+1];
+		index=phyint[4*i+1];
 		ptype=phyint[4*i+2];
 		stype=phyint[4*i+3];
-		penergy=phyfloat[5*i];
-		parposX=phyfloat[5*i+1];
-		parposY=phyfloat[5*i+2];
-		parposZ=phyfloat[5*i+3];
-		etime = phyfloat[5*i+4];
-		//if(i<10)
-		//	printf("particle state is %d %d %d %e %e %e %e %e\n", parID, ptype, stype, penergy, parposX, parposY, parposZ,etime);
+		tempe=phyfloat[5*i];
+		tempx=phyfloat[5*i+1];
+		tempy=phyfloat[5*i+2];
+		tempz=phyfloat[5*i+3];
+		tempt = phyfloat[5*i+4];
         
 		if(ptype == 7) //water molecule
 		{
-		  if(stype <= 4)
+		  if(stype <= 4) // ionized water molecule
 		  {
-		    posx[sidx_wi + idx_wi] = parposX;
-			posy[sidx_wi + idx_wi] = parposY;
-			posz[sidx_wi + idx_wi] = parposZ;
-			ene[sidx_wi + idx_wi] = penergy;
-			statetype[sidx_wi + idx_wi] = stype;
-			index[sidx_wi + idx_wi] = parID;
-			ttime[sidx_wi + idx_wi] = etime;
+		    ion_container[idx_wi*eleN]=tempe;
+		    ion_container[idx_wi*eleN+1] = tempx;
+			ion_container[idx_wi*eleN+2] = tempy;
+			ion_container[idx_wi*eleN+3] = tempz;
+			ion_container[idx_wi*eleN+4] = tempt;
+			ion_tag[idx_wi]=1;
+			ion_index[idx_wi]=index;
 			idx_wi++;
 		  }
-		  else if(stype == 5)
+		  else if (stype<10)
 		  {
-		    posx[sidx_we_a1b1 + idx_we_a1b1] = parposX;
-			posy[sidx_we_a1b1 + idx_we_a1b1] = parposY;
-			posz[sidx_we_a1b1 + idx_we_a1b1] = parposZ;
-			ene[sidx_we_a1b1 + idx_we_a1b1] = penergy;
-			statetype[sidx_we_a1b1 + idx_we_a1b1] = stype;
-			index[sidx_we_a1b1 + idx_we_a1b1] = parID;
-			ttime[sidx_we_a1b1 + idx_we_a1b1] = etime;
-			idx_we_a1b1++;
+		    posx_paren[idx_excite] = tempx;
+			posy_paren[idx_excite] = tempy;
+			posz_paren[idx_excite] = tempz;
+			ene_paren[idx_excite] = tempe;
+			ttime_paren[idx_excite] = tempt;
+			index_paren[idx_excite]=index;
+			if(stype == 5) //a1b1
+		  	{
+				type_paren[idx_excite] = 0;
+
+		  	}
+		   	else if(stype == 6) //b1a1
+		  	{
+				type_paren[idx_excite] = 1;
+		  	}
+		   	else if(stype >= 7 && stype <= 9) //rydberg and diffusion bands
+		  	{
+				type_paren[idx_excite] = 2;
+		  	}
+		  	idx_excite++;
 		  }
-		   else if(stype == 6)
+		 else if(stype == 10) 
 		  {
-		    posx[sidx_we_b1a1 + idx_we_b1a1] = parposX;
-			posy[sidx_we_b1a1 + idx_we_b1a1] = parposY;
-			posz[sidx_we_b1a1 + idx_we_b1a1] = parposZ;
-			ene[sidx_we_b1a1 + idx_we_b1a1] = penergy;
-			statetype[sidx_we_b1a1 + idx_we_b1a1] = stype;
-			index[sidx_we_b1a1 + idx_we_b1a1] = parID;
-			ttime[sidx_we_b1a1 + idx_we_b1a1] = etime;
-			idx_we_b1a1++;
-		  }
-		   else if(stype >= 7 && stype <= 9)
-		  {
-		    posx[sidx_we_rd + idx_we_rd] = parposX;
-			posy[sidx_we_rd + idx_we_rd] = parposY;
-			posz[sidx_we_rd + idx_we_rd] = parposZ;
-			ene[sidx_we_rd + idx_we_rd] = penergy;
-			statetype[sidx_we_rd + idx_we_rd] = stype;
-			//printf("idx_we_rd = %d  penergy = %e\n", idx_we_rd, penergy);
-			index[sidx_we_rd + idx_we_rd] = parID;
-			ttime[sidx_we_rd + idx_we_rd] = etime;
-			idx_we_rd++;
-		  }
-		   else if(stype == 10)
-		  {
-		    posx[sidx_w_dis + idx_w_dis] = parposX;
-			posy[sidx_w_dis + idx_w_dis] = parposY;
-			posz[sidx_w_dis + idx_w_dis] = parposZ;
-			ene[sidx_w_dis + idx_w_dis] = penergy;
-			statetype[sidx_w_dis + idx_w_dis] = stype;
-			index[sidx_w_dis + idx_w_dis] = parID;
-			ttime[sidx_w_dis + idx_w_dis] = etime;
-			idx_w_dis++;
+				temprand=(float)rand()/INT_MAX;
+				//printf("temprand=%f\n", temprand);
+				if (temprand<0.1)// dissociative electron attachment
+				{
+		    		posx_paren[idx_excite] = tempx;
+					posy_paren[idx_excite] = tempy;
+					posz_paren[idx_excite] = tempz;
+					ene_paren[idx_excite] = tempe;
+					ttime_paren[idx_excite] = tempt;
+					index_paren[idx_excite]=index;
+					type_paren[idx_excite] = 3;
+					idx_excite++;
+				}
+				else
+				{
+					electron_container[idx_elec*eleN]=tempe;
+		    		electron_container[idx_elec*eleN+1] = tempx;
+					electron_container[idx_elec*eleN+2] = tempy;
+					electron_container[idx_elec*eleN+3] = tempz;
+					electron_container[idx_elec*eleN+4] = tempt;
+					elec_index[idx_elec]=index;
+					idx_elec++;
+					//printf("idx_elec=%d, eleN=%d\n", idx_elec, eleN);
+				}
 		  }	  
+		  	
 		} 
 		else if(ptype == 0) //solvated electron
 		{		  
-		  posx[sidx_elec + idx_elec] = parposX;
-		  posy[sidx_elec + idx_elec] = parposY;
-		  posz[sidx_elec + idx_elec] = parposZ;
-		  ene[sidx_elec + idx_elec] = penergy;
-		  statetype[sidx_elec + idx_elec] = stype;	
-		  index[sidx_elec + idx_elec] = parID;
-		  ttime[sidx_elec + idx_elec] = etime;
-		  float temp, mintemp = 1000000.f;
-		  int idx_wiid;
-		  
-		  for(int k = sidx_wi; k < sidx_wi + idx_wi; k++) // need to be changed to GPU
-		  {
-		    temp = sqrt((parposX - posx[k]) * (parposX - posx[k]) + (parposY - posy[k]) * (parposY - posy[k]) + (parposZ - posz[k]) * (parposZ - posz[k]));			  
-			  	
-            if(temp < mintemp && tag_wiid[k - sidx_wi] == 0)
-            {     				
-			    mintemp = temp;
-				idx_wiid = k;
-			}
-		  }
-		  
-		  tag_wiid[idx_wiid - sidx_wi] = 1;
-
-		  wiid_elec[idx_elec] = idx_wiid;
-		  
-		  idx_elec++;
-		}		
+		    electron_container[idx_elec*eleN]=tempe;
+		    electron_container[idx_elec*eleN+1] = tempx;
+			electron_container[idx_elec*eleN+2] = tempy;
+			electron_container[idx_elec*eleN+3] = tempz;
+			electron_container[idx_elec*eleN+4] = tempt;
+			elec_index[idx_elec]=index;
+			idx_elec++;
+		}
 	}
 
-	printf("idx_elec = %d, idx_wi = %d, idx_we_a1b1 = %d, idx_we_b1a1 = %d, idx_we_rd = %d, idx_w_dis = %d\n", idx_elec, idx_wi, idx_we_a1b1, idx_we_b1a1, idx_we_rd, idx_w_dis);
-	
-	if(idx_elec != num_elec || idx_wi != num_wi || idx_we_a1b1 != num_we_a1b1 || idx_we_b1a1 != num_we_b1a1 || idx_we_rd != num_we_rd || idx_w_dis != num_w_dis)
+	if(idx_wi != num_wi || idx_excite +idx_elec!=num_we_a1b1+num_we_b1a1+num_we_rd+num_w_dis+num_elec)
 	{
 	    printf("error in the number of the initial particles for prechemical stage.\n");
 		exit(1);
 	}
-	
-	free(tag_wiid);
 
+	float minidis;
+	float pro;
+	int idx_recom=0;
+	int idx_mini=0;
+	float tx,ty,tz,tempdis;
+	for (int i = 0; i < idx_elec; i++)
+	{
+		tempe=electron_container[i*eleN];
+		tempx=electron_container[i*eleN+1];
+		tempy=electron_container[i*eleN+2];
+		tempz=electron_container[i*eleN+3];
+		tempt=electron_container[i*eleN+4];
+		posx_paren[idx_excite+i] = tempx;
+		posy_paren[idx_excite+i] = tempy;
+		posz_paren[idx_excite+i] = tempz;
+		ene_paren[idx_excite+i] = tempe;
+		ttime_paren[idx_excite+i] = tempt;
+		type_paren[idx_excite+i] = 5; // hydrated electron
+		index_paren[idx_excite+i]=elec_index[i];
+		if (tempe<Ecut_recom)
+		{
+			pro=0;
+
+			for (int j=0;j<num_para_recom[1];j++)
+			{
+				pro+=pro_recom[j]*pow(tempe,num_para_recom[1]-j-1);
+			}
+			temprand=(float)rand()/INT_MAX;
+			
+			if (temprand<pro)
+			{
+				minidis=100000.0f;
+				for (int j=0;j<idx_wi;j++)
+				{
+					tx=ion_container[j*eleN+1];
+					ty=ion_container[j*eleN+2];
+					tz=ion_container[j*eleN+3];
+					tempdis=sqrt(pow(tempx-tx,2)+pow(tempy-ty,2)+pow(tempz-tz,2));
+					if (tempdis<minidis && ion_tag[j]==1)
+					{ 
+						minidis=tempdis;
+						idx_mini=j; 
+					}
+				}
+				posx_paren[idx_excite+i] = ion_container[idx_mini*eleN+1];
+				posy_paren[idx_excite+i] = ion_container[idx_mini*eleN+2];
+				posz_paren[idx_excite+i] = ion_container[idx_mini*eleN+3];
+				ttime_paren[idx_excite+i] = ion_container[idx_mini*eleN+4];
+				type_paren[idx_excite+i] = 4; // recombined electron-hole
+				ion_tag[idx_mini]=255;
+				idx_recom++;
+				//printf("idx_mini=%d, idx_recom=%d\n",idx_mini, idx_recom);
+				
+			}
+		}
+	}
+	printf("idx_elec = %d, idx_wi = %d, idx_excite = %d, idx_recom = %d, num_wi=%d\n", idx_elec-idx_recom, idx_wi, idx_excite, idx_recom, num_wi);
+	idx_wi=0;
+	for (int i = 0; i < num_wi; i++)
+	{
+		if (ion_tag[i]==1)
+		{
+			tempe=ion_container[i*eleN];
+			tempx=ion_container[i*eleN+1];
+			tempy=ion_container[i*eleN+2];
+			tempz=ion_container[i*eleN+3];
+			tempt=ion_container[i*eleN+4];
+			posx_paren[idx_excite+idx_elec+idx_wi] = tempx;
+			posy_paren[idx_excite+idx_elec+idx_wi] = tempy;
+			posz_paren[idx_excite+idx_elec+idx_wi] = tempz;
+			ene_paren[idx_excite+idx_elec+idx_wi] = tempe;
+			ttime_paren[idx_excite+idx_elec+idx_wi] = tempt;
+			type_paren[idx_excite+idx_elec+idx_wi] = 6; // ionized water molecule
+			index_paren[idx_excite+idx_elec+idx_wi]=ion_index[i];
+			idx_wi++;
+		}
+
+	}
+			
+	printf("idx_elec = %d, idx_wi = %d, idx_excite = %d, idx_recom = %d\n", idx_elec-idx_recom, idx_wi, idx_excite, idx_recom);
+	// need to substract the recombined electron from the total count
+	num_total_paren -=idx_recom;
+	if(idx_wi+idx_recom!= num_wi)
+	{
+	    printf("idx_wi=%d, idx_recom=%d, num_wi=%d\n",idx_wi,idx_recom,num_wi);
+	    printf("error in the number of the recombined hole and residue hole for prechemical stage.\n");
+		exit(1);
+	}
+	for (int i=0;i<10;i++)
+	{
+		printf("particle %d has posx=%f, posy=%f, posz=%f, type_paren=%d, ene_paren=%f \n", i, posx_paren[i], posy_paren[i], posz_paren[i], type_paren[i], ene_paren[i]);
+	}
+		int num_electest=0;
+	for (int i=0;i<num_total_paren;i++)
+	{
+		if (type_paren[i]==5)
+		{num_electest++;};
+	}
+	printf("num_electest=%d\n", num_electest);
 	free(phyint);
 	free(phyfloat);
 }

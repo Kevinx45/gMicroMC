@@ -27,6 +27,8 @@ __global__ void setParticles(int num, int ptype, float A, float RMAX, Particle* 
     float deltaE = tex1D(eneProb_tex, 2.5);
     while(id<num)
     {
+        // ****** ISOTROPIC ******
+        
         r= RMAX*cbrtf(curand_uniform(&localstate));
         cost=-1+2*curand_uniform(&localstate);
         phi=2*PI*curand_uniform(&localstate);
@@ -39,22 +41,38 @@ __global__ void setParticles(int num, int ptype, float A, float RMAX, Particle* 
         d_eQueue[id].ux = sqrtf(1-cost*cost)*__cosf(phi);
         d_eQueue[id].uy = sqrtf(1-cost*cost)*__sinf(phi);
         d_eQueue[id].uz = cost;
+        
+        // ****** PUNTUAL IN PLANE ******
+        
+        /*X = 0;
+        Y = 0;
+        Z = 0;
 
-        /*X = -RMAX/2.0 + RMAX*(curand_uniform(&localstate)); 
-        Y = -RMAX/2.0 + RMAX*(curand_uniform(&localstate)); 
-        Z = -RMAX/2.0;
         d_eQueue[id].x = X; 
         d_eQueue[id].y = Y; 
         d_eQueue[id].z = Z; 
         d_eQueue[id].ux = 0; 
         d_eQueue[id].uy = 0; 
         d_eQueue[id].uz = 1; */
+        
+        // ****** RANDOM IN PLANE ****** 
+        /*
+        X = -RMAX/2.0 + RMAX*(curand_uniform(&localstate)); 
+        Y = -RMAX/2.0 + RMAX*(curand_uniform(&localstate)); 
+        Z = 0.;
 
+        d_eQueue[id].x = X; 
+        d_eQueue[id].y = Y; 
+        d_eQueue[id].z = Z; 
+        d_eQueue[id].ux = 0; 
+        d_eQueue[id].uy = 0; 
+        d_eQueue[id].uz = 1; 
+        */
         do{
             e = nBins*curand_uniform(&localstate);
             prob = tex1D(eneProb_tex, 3.5+e);
         }while(prob<curand_uniform(&localstate));
-        d_eQueue[id].e = emin+deltaE*e;
+        d_eQueue[id].e = 4500;//emin+deltaE*e;
 
         d_eQueue[id].h2oState = 99;
         d_eQueue[id].dead = 0;
@@ -605,7 +623,7 @@ __device__ void actChoice_proton(curandState *seed, cudaTextureObject_t protonCS
     float elog = log10(particle_ptr->e/particle_ptr->A);
     float entry = (elog-1.0)/0.05+0.5; //hard coding, related to smallest proton energy 10^1 eV, interval 10^0.05 in table
     float csArray[10]; //only ionization and excitation
-    // Sum up all possible cross sections
+    // Sum up all possible cross sections    
     for(int i=0; i<10; i++)
     {
     	csArray[i] = tex2D<gFloat>(protonCSTable, entry, (gFloat) i + 0.5);
@@ -819,7 +837,7 @@ __global__  void pTransport(int N, int ContainerSize, Particle *pQueue, Particle
                 eHop_proton(&seed,  &particle, polar, azi,ein);
                 e2ndQ(&particle, edrop, container, e2Queue, e2nd, second_num, polar_e2nd, azi_e2nd, where, gEid);
             }
-            eRecord(&particle, container,  edrop, where, ContainerSize);
+            eRecord(&particle, container,  edrop, where, ContainerSize); // Comment for kill track pCutoff
         }
         id += blockDim.x*gridDim.x;
     }

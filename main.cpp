@@ -9,7 +9,7 @@
 #include "prechemical.h"
 #include "chemical.h"
 #include "DNAList.h"
-//#include "microMC_chem.h"
+
 
 
 int verbose, NPART, NRAND, NTHREAD_PER_BLOCK, deviceIndex;
@@ -33,13 +33,15 @@ int main()
 	float eneDeposited = 0;
 	int irun = 0;
 	PhysicsList pl;
+	if(document["startStage"].GetInt()<1)
+	{
 	int nPar=0;
 	nPar=document["nPar"].GetInt();
 	int maxRun=0;
 	maxRun=document["maxRun"].GetInt();
-	while(irun<maxRun)//eneDeposited<document["targetEneDep"].GetFloat())
+	while(irun<maxRun)//eneDeposited<document["targetEneDep"].GetFloat()) irun<maxRun
 	{		
-		// system("rm ./output/events.dat"); // uncomment this line if it givs file reading error
+		//system("rm ./output/*"); // uncomment this line if it givs file reading error
 		pl.run();
 		pl.saveResults();
 		std::string fname = document["fileForEnergy"].GetString();
@@ -56,7 +58,8 @@ int main()
 		irun++;
 		//if(irun>3) break; // uncomment this line when you are testing code for safety
 	}
-
+	}
+	
 	PrechemList pcl;
 	if(document["startStage"].GetInt()<2)
 	{		
@@ -64,45 +67,32 @@ int main()
 		pcl.run();
 		pcl.saveResults();
 	}
-
+	
 	
 	ChemList cl;
-	DNAList ddl;
-	ddl.calDNAreact_radius(cl.diffCoef_spec);
-	ddl.initDNA();
-
-	if(document["startStage"].GetInt()<3)
-	{	
-		if(document["testSwitch"].GetInt() == 0)
-		{
-		cout << "G0/G1 Phase";
-		cl.readIniRadicals();
-		cl.copyDataToGPU();	
-		cl.run(ddl); // saveResutls function is called on the fly -- concurrent method 
-		}
-		else if(document["testSwitch"].GetInt() == 1)
-		{
-		cout << "Metaphase";
-		cl.readIniRadicals();
-		cl.copyDataToGPU();	
-		cl.run(ddl); // saveResutls function is called on the fly -- concurrent method 
-		}
-		else
-		{
-		cout << "Invalid Output";
-		}
-	}
-
+    DNAList ddl;
 	
-	if(document["startStage"].GetInt()<4)// || dose>targetDose)
-	{	
-		int repeat = document["repTimes"].GetInt();
-		for(int jjj=0;jjj<repeat;jjj++)
+	ddl.calDNAreact_radius(cl.diffCoef_spec);
+		ddl.initDNA();
+
+		if(document["startStage"].GetInt()<3)
 		{	
-			ddl.run();
-			ddl.saveResults();
+	  		cl.readIniRadicals();
+	  		cl.copyDataToGPU();
+	  		std::cout << "here !!!\n";
+	  		cl.run(ddl); // saveResutls function is called on the fly -- concurrent method 
+		 }
+
+		if(document["startStage"].GetInt()<4)// || dose>targetDose)
+		{	
+			int repeat = document["repTimes"].GetInt();
+			for(int jjj=0;jjj<repeat;jjj++)
+			{	
+				ddl.run();
+				ddl.saveResults();
+			}
 		}
-	}
+	
 	CUDA_CALL(cudaFree(cuseed));
 	return 0;
 }

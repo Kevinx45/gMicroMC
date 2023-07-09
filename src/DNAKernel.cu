@@ -5,6 +5,7 @@ __constant__  float d_rDNA[72];
 void DNAList::initDNA()
 {
 	int totalspace = NUCLEUS_DIM*NUCLEUS_DIM*NUCLEUS_DIM;
+	printf("totalSpace %d\n\n", totalspace);
 	int *chromatinIndex = (int*)malloc(sizeof(int)*totalspace);
 	int *chromatinStart = (int*)malloc(sizeof(int)*totalspace);
 	int *chromatinType = (int*)malloc(sizeof(int)*totalspace);
@@ -494,12 +495,10 @@ __global__ void phySearch(int num, Edeposit* d_edrop, int* dev_chromatinIndex,in
 		d_recorde[id].site.w=-1;		
 		d_recorde[id].prob1=d_edrop[id].e;
 		d_recorde[id].prob2=curand_uniform(&localState)*(EMAX-EMIN)+EMIN;
-
 		pos_cur_target=d_edrop[id].position;
 		index.x=floorf((pos_cur_target.x+UNITLENGTH*NUCLEUS_DIM/2)/UNITLENGTH);
 		index.y=floorf((pos_cur_target.y+UNITLENGTH*NUCLEUS_DIM/2)/UNITLENGTH);
 		index.z=floorf((pos_cur_target.z+UNITLENGTH*NUCLEUS_DIM/2)/UNITLENGTH);
-
 		int delta=index.x+index.y*NUCLEUS_DIM+index.z*NUCLEUS_DIM*NUCLEUS_DIM,minindex=-1;
 		float distance[3]={100},mindis=100;
 		for(int i=0;i<27;i++)
@@ -507,9 +506,10 @@ __global__ void phySearch(int num, Edeposit* d_edrop, int* dev_chromatinIndex,in
 			flag=0;
 			int newindex = delta+neighborindex[i];
 			if(newindex<0 || newindex > NUCLEUS_DIM*NUCLEUS_DIM*NUCLEUS_DIM-1) continue;
+			// printf("init success11, %d, %d\n", newindex, NUCLEUS_DIM*NUCLEUS_DIM*NUCLEUS_DIM);
 			int type = dev_chromatinType[newindex];
 			if(type==-1 || type==0) continue;
-
+			// printf("init success11, %d\n", id);
 			newpos = pos2local(type, pos_cur_target, newindex);
 			if(type<7)
 			{
@@ -531,6 +531,7 @@ __global__ void phySearch(int num, Edeposit* d_edrop, int* dev_chromatinIndex,in
 				histone=dev_bendHistone;
 				histoneNum=BEND_HISTONE_NUM;
 			}
+			// printf("init success2, %d\n", id);
 			for(int j=0;j<histoneNum;j++)
 			{
 				mindis = caldistance(newpos, histone[j])-RHISTONE;
@@ -603,10 +604,9 @@ void DNAList::run()
 	
 	combinePhysics* d_recorde;
 	CUDA_CALL(cudaMalloc((void**)&d_recorde,sizeof(combinePhysics)*totalphy));
-
 	phySearch<<<NRAND/256,256>>>(totalphy, dev_edrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
 								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recorde);
-	cudaDeviceSynchronize();
+	CUDA_CALL(cudaDeviceSynchronize());
 	CUDA_CALL(cudaFree(dev_edrop));
 
 	combinePhysics* recorde=(combinePhysics*)malloc(sizeof(combinePhysics)*totalphy);		 
@@ -650,7 +650,10 @@ void DNAList::run()
 	free(recordPhy);
 	free(recordChem);	    
 	printf("total efective is %d\n**********", totalphy+totalchem);
-
+	
+	totaldose = dep_sum/4.35568731e6;
 	damageAnalysis(totalphy+totalchem,totalrecord,dep_sum/4.35568731e6,0,0);
+	// printf("try to free");
 	free(totalrecord);
+	// printf("free success");
 }

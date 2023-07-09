@@ -11,10 +11,9 @@
 #define STRAIGHT_HISTONE_NUM 30
 #define UNITLENGTH 55 // size of a voxel in nm
 
-#define EMIN 17.5
-#define EMAX 17.5
-#define PROBCHEM 0.4
-
+#define EMIN 18
+#define EMAX 18
+#define PROBCHEM 0.1
 #define DiffusionOfOH 2.8 //  10^9 nm*nm/s
 #define SPACETOBODER 2
 #define RBASE 0.5
@@ -50,7 +49,7 @@ class DNAList
 {
 public:
     DNAList();
-    ~DNAList();
+    virtual ~DNAList();
     void initDNA();
     void saveResults();
     void calDNAreact_radius(float* diffCoeff);
@@ -61,7 +60,8 @@ public:
     void run();
 public:
     float rDNA[12]={0};
-    int complexity[7]={0,0,0,0,0,0,0};//SSB,2xSSB, SSB+, 2SSB, DSB, DSB+, DSB++
+    float totaldose = 0;
+    int complexity[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};//SSB,2xSSB, SSB+, 2SSB, DSB, DSB+, DSB++
 	int results[7]={0,0,0,0,0,0,0};//SSBd, SSbi, SSbm, DSBd, DSBi, DSBm, DSBh.
     //GPU
     CoorBasePair *dev_bendChrom, *dev_straightChrom;

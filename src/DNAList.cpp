@@ -4,18 +4,24 @@ compare_baseindex compare2;
 compare_boxindex compare3;
 DNAList::DNAList()
 {
-	
+	dev_bendChrom=nullptr;
+	dev_bendHistone=nullptr;
+	dev_straightChrom=nullptr;
+	dev_straightHistone=nullptr;
+	dev_chromatinIndex=nullptr;
+	dev_chromatinStart=nullptr;
+	dev_chromatinType=nullptr;
 }
 
 DNAList::~DNAList()
 {
-	cudaFree(dev_bendChrom);
-	cudaFree(dev_bendHistone);
-	cudaFree(dev_straightChrom);
-	cudaFree(dev_straightHistone);
-	cudaFree(dev_chromatinIndex);
-	cudaFree(dev_chromatinStart);
-	cudaFree(dev_chromatinType);
+// 	if(dev_bendChrom!=nullptr) CUDA_CALL(cudaFree(dev_bendChrom));
+// 	if(dev_bendHistone!=nullptr) CUDA_CALL(cudaFree(dev_bendHistone));
+// 	CUDA_CALL(cudaFree(dev_straightChrom));
+// 	CUDA_CALL(cudaFree(dev_straightHistone));
+// 	CUDA_CALL(cudaFree(dev_chromatinIndex));
+// 	CUDA_CALL(cudaFree(dev_chromatinStart));
+// 	CUDA_CALL(cudaFree(dev_chromatinType));
 }
 
 
@@ -138,7 +144,7 @@ chemReact* DNAList::combinePhy(int* totalphy, combinePhysics* recorde,int mode)
 }
 void DNAList::damageAnalysis(int counts, chemReact* recordpos,float totaldose,int totalPar,int totalOH)
 {
-	//if(counts==0) return;
+	if(counts==0) return;
 	char buffer[256];
 	
 	quicksort(recordpos,0,counts,1);	
@@ -156,6 +162,7 @@ void DNAList::damageAnalysis(int counts, chemReact* recordpos,float totaldose,in
         {
         	complexity[0]++;
         	results[recordpos[start].w]++;
+			// printf("aaaa\n");
         	continue;//find breaks in another DNA
         }
 
@@ -198,18 +205,21 @@ void DNAList::damageAnalysis(int counts, chemReact* recordpos,float totaldose,in
         			if(recordpos[m].y-recordpos[k].y>dS) {m--;break;}//SSB+
         			if(recordpos[m].w!=recordpos[k].w) numoftype++;
     				m++;
+
         		}
         		if(flag==0)
         		{
         			complexity[2]++;
 	        	 	if(numoftype!=0) results[2]++;
 	        		else results[recordpos[k].w]++;//=m-k;
+					// printf("aa0aa\n");
         		}
         		else if(flag==2)
         		{
         			complexity[3]++;
 	        	 	if(numoftype!=0) results[2]++;
 	        		else results[recordpos[k].w]++;
+					// printf("aa2aa\n");
         		}
 	        	else
 	        	{//if flag=1,m must be k+1 and from k there must be a DSB
@@ -232,13 +242,26 @@ void DNAList::damageAnalysis(int counts, chemReact* recordpos,float totaldose,in
 	        		else results[3+recordpos[k].w]++;
 
 	        		if(m-k==2) complexity[4]++;
-	        		else complexity[5]++;
+	        		else 
+	        			{
+	        				if (m-k==3) complexity[5]++;
+	        				if (m-k==4) complexity[6]++;
+	        				if (m-k==5) complexity[7]++;
+	        				if (m-k==6) complexity[8]++;
+	        				if (m-k==7) complexity[9]++;
+	        				if (m-k==8) complexity[10]++;
+	        				if (m-k==9) complexity[11]++;
+	        				if (m-k>9) complexity[12]++;
+	        				
+	        			}
 	        		cur_dsb++;
+					// printf("aa1aa\n");
 	        	}
 	        	k=m;
+
         	}       	
         }
-        if(cur_dsb>1) complexity[6]++;
+        if(cur_dsb>1) complexity[13]++;
         if(k==i-1)//deal with the last one in a segment
         {
         	complexity[1]++;
@@ -251,14 +274,14 @@ void DNAList::saveResults()
 {
 	std::string fname = document["fileForOutputDamage"].GetString();
 	FILE* fp= fopen(fname.c_str(),"a");
-    // fprintf(fp, "Dose SBcounts 0\n");
-    // fprintf(fp, "%f\n", totaldose);
+    fprintf(fp, "Dose\n");
+   fprintf(fp, "%f\n", totaldose);
     fprintf(fp, "SSBd SSbi SSbm DSBd DSBi DSBm DSBh\n");
     for(int index=0;index<7;index++)
     	fprintf(fp, "%d ", results[index]);
     fprintf(fp, "\n");
-    fprintf(fp, "SSB 2xSSB SSB+ 2SSB DSB DSB+ DSB++\n");
-    for(int index=0;index<7;index++)
+    fprintf(fp, "SSB 2xSSB SSB+ 2SSB DSB DSB3 DSB4 DSB5 DSB6 DSB7 DSB8 DSB9 DSB10 DSB++\n");
+    for(int index=0;index<14;index++)
     	fprintf(fp, "%d ", complexity[index]);
    	fprintf(fp, "\n");
 	fclose(fp);

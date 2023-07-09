@@ -13,79 +13,29 @@ struct first_element_equal_255
   }
 };
 
-__global__ void thermalisation_subexelectrons(float *d_posx, // x position of the particles (input and output)
-                                              float *d_posy,
-											  float *d_posz,
-											  float *d_ene, // initial energies of the initial particles (input only, no use as of May 2021)
-											  int *d_ptype, // species type for products of prechemical stage, 255 for empty or produced water (output)
-											  int *d_statetype, //the statetype of the initial particles (255 for died particles)
-											  int *d_wiid_elec); // the index of the ionized water molecule for potential recombination
+__global__ void physiochemical_decay(float *d_posx, // x position of the particles (input and output)
+                                    float *d_posy,
+									float *d_posz,
+									int *d_ptype,
+									//int d_num_total,
+									int *d_num_bran_paren,
+									float *d_ratio_bran_paren,
+									int *d_brantype_paren,
+									int *d_num_prod_bran,
+									float *d_ene_paren,
+									//int d_num_rms_para,
+									float *d_rms_therm_elec,
+									//int d_max_prod_bran,
+									//int d_max_bran_paren,
+									float *d_para_replace_bran,
+									int *d_prodtype_bran
+									);
 
-__global__ void dissociation_ionizedwater(float *d_posx,
-                                          float *d_posy,
-										  float *d_posz,
-										  int *d_ptype,
-										  int *d_statetype);
+__device__ void get_distance(curandState *localState_pt, float rms, float *r,float ene,int flag);
 
-__global__ void dissociation_excitedwater_a1b1(float *d_posx,
-                                               float *d_posy,
-										       float *d_posz,
-										       int *d_ptype,
-										       int *d_statetype);
+__device__ void get_electron_distance(curandState *localState_pt, float *r);  
 
-__global__ void dissociation_excitedwater_b1a1(float *d_posx,
-                                               float *d_posy,
-										       float *d_posz,
-										       int *d_ptype,
-										       int *d_statetype);
-
-__global__ void dissociation_excitedwater_rd(float *d_posx,
-                                             float *d_posy,
-										     float *d_posz,
-										     int *d_ptype,
-										     int *d_statetype);
-
-__global__ void dissociation_dissociativewater(float *d_posx,
-                                               float *d_posy,
-										       float *d_posz,
-										       int *d_ptype,
-										       int *d_statetype);
-
-__device__ void displace_twoproducts_noholehoping(float *d_posx, 
-                                                  float *d_posy, 
-												  float *d_posz,
-												  curandState *localState_pt,
-												  int btype, //branch type
-												  int pid, // the current particle id
-												  int pid_site);// the id of the particle considerred to be the original site (for recombination) 
-
-__device__ void displace_threeproducts_noholehoping(float *d_posx, 
-                                                  float *d_posy, 
-												  float *d_posz, 
-												  curandState *localState_pt,
-												  int btype, //branch type
-												  int pid, // the current particle id
-												  int pid_site); // the id of the particle considerred to be the original site (for recombination) 
-
-__device__ void displace_twoproducts_holehoping(float *d_posx, 
-                                                float *d_posy, 
-												float *d_posz, 
-												curandState *localState_pt,
-												int btype, //branch type
-												int pid); // the current particle id        
-
-__device__ void sampleThermalDistance(int pid, curandState *localState_pt, float *ndisx, float *ndisy, float *ndisz, float idx_ebin);
-
-__device__ void displace_twoproducts_oneelec_holehoping(float *d_posx, 
-                                                        float *d_posy, 
-												        float *d_posz, 
-												        curandState *localState_pt,
-												        int btype, //branch type
-												        int pid); // the current particle id
-
-__device__ void getNormalizedDis_Sample3DGuassian(curandState *localState_pt, float *ndisx, float *ndisy, float *ndisz) ;
-
-__device__ void getDirection_SampleOnSphereSurface(curandState *localState_pt, float *ndisx, float *ndisy, float *ndisz);                                                        	                                                                                                                                                                                                                                 	                                                                                                                                       
+__device__ void get_direction(curandState *localState_pt, float *nx, float *ny, float *nz) ;                                                      	                                                                                                                                                                                                                                 	                                                                                                                                       
 
 
 #endif

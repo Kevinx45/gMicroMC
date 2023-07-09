@@ -1,5 +1,7 @@
 #number of branch types
-6
+8
+# maximum number of products for one branch
+3
 # all the branch types: branch type, number of products, species type of products (species type: 0 e_{aq}-, 1 OH., 2 H., 3 H3O+, 4 H2, 5 OH-)
 0 2 3 1 
 1 2 1 2
@@ -7,27 +9,34 @@
 3 3 3 1 0
 4 3 4 1 1 
 5 3 4 1 5 
+6 1 0
+7 2 2 2
 # for each branch type: rms of hole hopping (nm), rms of placement (nm), placement coefficient for each product
-# (according to table 3 in M.A. Bernal, physica Medica, 31(2015):861-874)
-0 2.0 0.8 0.0 1.0 0.0 0.0 0.0 0.0 0.0 
-1 0.0 2.4 0.0 -0.05555556 0.0 0.94444444 0.0 0.0 0.0
-2 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
-3 2.0 0.8 0.0 1.0 0.0 0.0 0.0 0.0 0.0
-4 0.0 0.8 1.1 -0.11111111 0.0 0.88888889 0.5 0.88888889 -0.5
-5 0.0 0.8 1.1 -0.11111111 0.0 0.88888889 0.5 0.88888889 -0.5  
-# the branches for the recombined electrons(number of branches, branch type and probability of each branch)(modified from 3 0.55 4 0.15 2 0.3 to 1 0.55 4 0.15 2 0.3 based on Geant4-DNA)
-3 1 0.55 4 0.15 2 0.3
-# the branches for the ionized water molecules(number of branches, branch type and probability of each branch)
-1 0 1.0
-# the branches for the A1B1 excited water molecules(number of branches, branch type and probability of each branch)
-2 1 0.65 2 0.35
-# the branches for the B1A1 excited water molecules(number of branches, branch type and probability of each branch)
-3 3 0.55 4 0.15 2 0.3
-# the branches for the excited water molecules with rydberg and diffusion bands(number of branches, branch type and probability of each branch)
-2 3 0.5 2 0.5
-# the branches for dissociative water molecules(number of branches, branch type and probability of each branch)
-1 5 1.0
-
-
-
-
+8
+# (according to table 3 in M.A. Bernal, physica Medica, 31(2015):861-874) (branch 3 has an additional electron will follow thermalization of subexcitation electron, branch 1&3 has 50% chance to switch the position between product 1 and 2)
+0 2.0 0.8 1.0 1.0 1.0 0.0 0.0 0.0 
+1 2.4 0.0 -0.05555556 0.0 0.94444444 0.0 0.0 0.0
+2 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+3 2.0 0.8 1.0 1.0 1.0 0.0 0.0 0.0
+4 0.8 1.1 -0.11111111 0.0 0.88888889 0.5 0.88888889 -0.5
+5 0.8 1.1 -0.11111111 0.0 0.88888889 0.5 0.88888889 -0.5  
+6 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0
+7 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0
+# number of parent molecular types
+7
+# maximum number of branches for one parent molecule
+4
+# the branches for the A1B1 excited water molecules(index, number of branches, branch type and probability of each branch, H2O*)
+0 2 1 0.65 2 0.35
+# the branches for the B1A1 excited water molecules(index, number of branches, branch type and probability of each branch, H2O*)
+1 5 3 0.5 1 0.2535 2 0.175 7 0.039 4 0.0325
+# the branches for the excited water molecules with rydberg and diffusion bands(index, number of branches, branch type and probability of each branch, H2O*)
+2 2 3 0.4 2 0.6
+# the branches for dissociative attachment water molecules(index, number of branches, branch type and probability of each branch, H2O-)
+3 1 5 1.0
+# the branches for the recombined electrons(number of branches, branch type and probability of each branch)(H2O)
+4 4 1 0.3575 2 0.35 4 0.1365 7 0.156
+# the branches for the hydrated electrons(number of branches, branch type and probability of each branch)(e-)
+5 1 6 1.0
+# the branches for the ionized water molecules(number of branches, branch type and probability of each branch)(H2O+)
+6 1 0 1.0

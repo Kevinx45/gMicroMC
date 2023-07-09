@@ -18,8 +18,7 @@ struct chem_first_element_equal_255
 };
 
 __global__ void addOxygen(unsigned char* d_ptype, int* d_index, float* d_posx, float* d_posy,
-    float* d_posz, float* d_ttime, int numCurPar, float minx, float maxx,
-    float miny, float maxy, float minz, float maxz);
+    float* d_posz, float* d_ttime, int numCurPar, float ROIX, float ROIY, float ROIZ);
 
 __global__ void changePtype(unsigned char * ptype, int num,int targetValue);
 
@@ -110,8 +109,7 @@ __global__ void react4TimeStep_afterDiffusion(float *posx_new,
                                    int numNZBin,
                                    int numCurPar,
                                    int idx_typeTimeStep);
-__global__ void makeOneJump4Diffusion(float *d_posx_d, float *d_posy_d, float *d_posz_d, int numCurPar);
-
+__global__ void makeOneJump4Diffusion(float *d_posx_d, float *d_posy_d, float *d_posz_d, int numCurPar, float ROIX, float ROIY, float ROIZ);
 __device__ int judge_par_before(int* dev_chromatinIndex,int* dev_chromatinStart,int* dev_chromatinType, CoorBasePair* dev_straightChrom,
 								CoorBasePair* dev_bendChrom,float3* dev_straightHistone,float3* dev_bendHistone,float3 pos_cur_target,
 								int3 index, int id, curandState* plocalState,float4* d_recordposition);
@@ -123,5 +121,5 @@ __global__ void reactDNA_afterDiffusion(int* dev_chromatinIndex,int* dev_chromat
     float mintd, unsigned char* d_type, int numCurPar, float4* d_recordposition);
 __device__ int judge_par_after(int* dev_chromatinIndex,int* dev_chromatinStart,int* dev_chromatinType, CoorBasePair* dev_straightChrom,
     CoorBasePair* dev_bendChrom,float3* dev_straightHistone,float3* dev_bendHistone,float3 pos_cur_target,
-    float3 past, int3 index, int id, curandState* plocalState, float d_deltaT, float4* d_recordposition);               
+    float3 past, int3 index, int id, curandState* plocalState, float d_deltaT, float4* d_recordposition);             
 #endif

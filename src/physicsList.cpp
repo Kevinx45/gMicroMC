@@ -412,7 +412,7 @@ void PhysicsList::saveResults()
 
         total_e += h_container[i].e;
         
-        if (applyROISearch(shapeROI,centerROI, sizeROI, x, y, z))
+        if(applyROISearch(shapeROI,centerROI, sizeROI, x, y, z))//r2<NUCLEUS_RADIUS*NUCLEUS_RADIUS)//applyROISearch(shapeROI,centerROI, sizeROI, x, y, z))
 //        	printf("\n %f %f %f \n", x, y, z);
         {
             deposit_e += h_container[i].e;
@@ -422,9 +422,9 @@ void PhysicsList::saveResults()
             fwrite (&(h_container[i].e), sizeof(float), 1, totalphy);
         }
         fwrite(&(h_container[i].e),sizeof(float),1,physfloat);
-        fwrite(&(x),sizeof(float),1,physfloat);         
-        fwrite(&(y),sizeof(float),1,physfloat);       
-        fwrite(&(z),sizeof(float),1,physfloat);        
+        fwrite(&(x),sizeof(float),1,physfloat); 
+        fwrite(&(y),sizeof(float),1,physfloat); 
+        fwrite(&(z),sizeof(float),1,physfloat);   
         fwrite(&(h_container[i].time),sizeof(float),1,physfloat);
     }
 

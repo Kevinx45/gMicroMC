@@ -1,6 +1,5 @@
 #include "chemicalKernel.cuh"
 #include "DNAKernel.cuh"
-
 //gpu variables from chemical species
 __device__ __constant__ float d_diffCoef_spec[MAXPARTYPE];
 __device__ __constant__ float d_radii_spec[MAXPARTYPE];
@@ -36,8 +35,8 @@ __device__ float d_deltaT[1];
 
 
 __global__ void addOxygen(unsigned char* d_ptype, int* d_index, float* d_posx, float* d_posy,
-    float* d_posz, float* d_ttime, int numCurPar, float minx, float maxx,
-    float miny, float maxy, float minz, float maxz)
+    float* d_posz, float* d_ttime, int numCurPar, float ROIX, float ROIY,
+    float ROIZ)
 {
     int tid = blockIdx.x*blockDim.x+ threadIdx.x;
     curandState localState = cuseed[tid];
@@ -48,11 +47,11 @@ __global__ void addOxygen(unsigned char* d_ptype, int* d_index, float* d_posx, f
         d_index[tid+numCurPar] = -1;
         d_ttime[tid+numCurPar] = 1;
         rando = curand_uniform(&localState);
-        d_posz[tid+numCurPar] = minz - 250 + rando*(maxz-minz+500);
+        d_posx[tid+numCurPar] = - ROIX/2 + rando*ROIX;
         rando = curand_uniform(&localState);
-        d_posy[tid+numCurPar] = miny - 250 + rando*(maxy-miny+500);
+        d_posy[tid+numCurPar] = - ROIY/2 + rando*ROIY;
         rando = curand_uniform(&localState);
-        d_posx[tid+numCurPar] = minx - 250 + rando*(maxx-minx+500);
+        d_posz[tid+numCurPar] = - ROIZ/2 + rando*ROIZ;
     }
     cuseed[tid] = localState;
 }
@@ -281,6 +280,8 @@ __device__ int generateNewPar(int reactType,
     //     if(d_typeNewPar_React[d_indexNewPar_React[reactType]+tmpi]==4)
     //         printf("tid %d react %d",tid, idx_par_neig);
     // }
+    if (ptype_neig==8&&ptype_target==5) printf("reactions between Ho2 and OH- happened \n");
+    if (ptype_neig==5&&ptype_target==8) printf("reactions between OH- and Ho2 happened \n");
     
     if(numNewPar == 0)
     {
@@ -682,7 +683,7 @@ __global__ void react4TimeStep_afterDiffusion(float *posx_new,
     }
 }
 
-__global__ void makeOneJump4Diffusion(float *d_posx_d, float *d_posy_d, float *d_posz_d, int numCurPar) 
+__global__ void makeOneJump4Diffusion(float *d_posx_d, float *d_posy_d, float *d_posz_d, int numCurPar, float ROIX, float ROIY, float ROIZ) 
 {//Radical diffuse one step
     const int tid = blockIdx.x*blockDim.x+ threadIdx.x;
     if(tid < numCurPar)
@@ -698,7 +699,7 @@ __global__ void makeOneJump4Diffusion(float *d_posx_d, float *d_posy_d, float *d
 
         d_posx_d[tid] = tex1Dfetch(posx_tex, tid) + std_dis_diffusion * __fsqrt_rn(zeta1)* __cosf(zeta2);
         d_posy_d[tid] = tex1Dfetch(posy_tex, tid) + std_dis_diffusion * __fsqrt_rn(zeta1)* __sinf(zeta2);
-
+        
         zeta1 = -2.0f * log(curand_uniform(&localState));
         zeta2 = 2.0f * PI * curand_uniform(&localState);
         d_posz_d[tid] = tex1Dfetch(posz_tex, tid) + std_dis_diffusion * __fsqrt_rn(zeta1)* __cosf(zeta2);
@@ -848,7 +849,7 @@ void ChemList::run(DNAList ddl)
 	thrust::device_vector<unsigned long>::iterator result_unique_copy;
 	thrust::device_vector<unsigned long>::iterator result_remove;
 
-	thrust::device_vector<unsigned long> uniBinidxPar_dev_vec(30*numCurPar);
+	thrust::device_vector<unsigned long> uniBinidxPar_dev_vec(2*MAXNUMNZBIN);//30*numCurPar);
 			
 	typedef thrust::tuple<thrust::device_vector<unsigned char>::iterator, thrust::device_vector<float>::iterator, thrust::device_vector<float>::iterator, thrust::device_vector<float>::iterator,thrust::device_vector<float>::iterator,thrust::device_vector<int>::iterator> IteratorTuple;
         // define a zip iterator
@@ -866,13 +867,19 @@ void ChemList::run(DNAList ddl)
 	int numofextendbin=5;
 	
 	int totalIni=2*iniPar;
-	recordposition = (float4*) malloc(sizeof(float4)*totalIni);
-	memset(recordposition,0,sizeof(float4)*totalIni);
-	CUDA_CALL(cudaMalloc((void**) &d_recordposition, sizeof(chemReact)*totalIni));
-	printf("max_radi_react=%f,%f,%f,%f\n",max_calc_radii_React[0],max_calc_radii_React[1],max_calc_radii_React[2],max_calc_radii_React[3]);
-
-    float process_time = document["chemicalTime"].GetFloat();
+    recordposition = (float4*) malloc(sizeof(float4)*totalIni);
+    memset(recordposition,0,sizeof(float4)*totalIni);
+    CUDA_CALL(cudaMalloc((void**) &d_recordposition, sizeof(chemReact)*totalIni));
+	printf("max_radi_react=%f,%f,%f,%f\n",max_calc_radii_React[0],max_calc_radii_React[3],max_calc_radii_React[4],max_calc_radii_React[5]);
+    float process_time = document["chemicalTime"].GetFloat();    
+    float ROIX = document["ROISizeX"].GetFloat();
+    float ROIY = document["ROISizeY"].GetFloat();
+    float ROIZ = document["ROISizeZ"].GetFloat();
+    ROIX = ROIX*1e3;
+    ROIY = ROIY*1e3;
+    ROIZ = ROIZ*1e3;
     float h_deltaT = 0.1;
+    int recordCount=0;
 /***********************************************************************************/	
 	while(curTime < process_time) //curTime starts from 1
 	{
@@ -918,7 +925,7 @@ void ChemList::run(DNAList ddl)
 			float V = (max_posz- min_posz+500)*(max_posx- min_posx+500)*(500+max_posy- min_posy)/1e9;
 			printf("volume is %f um^3\n", V);
 			if(NUMOXYGEN>0) addOxygen<<<1+(NUMOXYGEN-1)/512,512>>>(d_ptype, d_index, d_posx, d_posy, d_posz,
-				d_ttime, numCurPar, min_posx, max_posx, min_posy, max_posy, min_posz, max_posz);
+				d_ttime, numCurPar, ROIX, ROIY, ROIZ);
 			numCurPar+= NUMOXYGEN;
 		}
 		//binSize=(binSize>(max_posx - min_posx)/200)?:(max_posx - min_posx)/200;
@@ -977,10 +984,10 @@ void ChemList::run(DNAList ddl)
 		CUDA_CALL(cudaUnbindTexture(posz_tex));
 		CUDA_CALL(cudaUnbindTexture(ptype_tex));
 		
-		CUDA_CALL(cudaMemset(d_statusPar, 255, sizeof(unsigned char) * maxPar)); // use 255 to mark the dead particle
+		CUDA_CALL(cudaMemset(d_statusPar, 255, sizeof(unsigned char) * maxPar));//iniPar*2)); // use 255 to mark the dead particle
 		CUDA_CALL(cudaMemset(d_statusPar, 0, sizeof(unsigned char) * numCurPar));
 
-		CUDA_CALL(cudaMemset(d_ptype, 255, sizeof(unsigned char) * maxPar)); // use 255 to mark the void entry in the new particle array
+		CUDA_CALL(cudaMemset(d_ptype, 255, sizeof(unsigned char) * maxPar));//iniPar*2)); // use 255 to mark the void entry in the new particle array
 		CUDA_CALL(cudaMemcpy(d_ptype, d_ptype_s, sizeof(unsigned char) * numCurPar, cudaMemcpyDeviceToDevice));
 
 		CUDA_CALL(cudaMemcpy(d_posx, d_posx_s, sizeof(float) * numCurPar, cudaMemcpyDeviceToDevice));
@@ -993,7 +1000,7 @@ void ChemList::run(DNAList ddl)
 		CUDA_CALL(cudaBindTexture(0, posy_tex, d_posy_s, sizeof(float) * numCurPar));
 		CUDA_CALL(cudaBindTexture(0, posz_tex, d_posz_s, sizeof(float) * numCurPar));
 		CUDA_CALL(cudaBindTexture(0, ptype_tex, d_ptype_s, sizeof(unsigned char) * numCurPar));
-/***********************************************************************************/	
+    /***********************************************************************************/   
         if(elapseReact>reactInterval || idx_iter==0)
         {
             CUDA_CALL(cudaMemset(d_recordposition, 0, sizeof(float4)*totalIni));
@@ -1001,8 +1008,7 @@ void ChemList::run(DNAList ddl)
             reactDNA_beforeDiffusion<<<nblocks, NTHREAD_PERBLOCK_CHEM>>>(ddl.dev_chromatinIndex, ddl.dev_chromatinStart, ddl.dev_chromatinType,  ddl.dev_straightChrom,
                 ddl.dev_bendChrom, ddl.dev_straightHistone, ddl.dev_bendHistone, d_statusPar, d_ptype, 
                                     d_mintd_Par, numCurPar, d_recordposition);
-            cudaDeviceSynchronize();
-            std::cout << "totalIni is "<<totalIni << std::endl;
+            CUDA_CALL(cudaDeviceSynchronize());
             CUDA_CALL(cudaMemcpy(recordposition, d_recordposition, sizeof(float4)*totalIni, cudaMemcpyDeviceToHost));
             if(idx_iter!=0) saveResults();
             elapseReact = 0;
@@ -1023,18 +1029,6 @@ void ChemList::run(DNAList ddl)
 		mintd = min_ptr[0];		
 //		printf("mintd = %f\n", mintd);
 
-		/***************seems no need to clean extra particles here because if mintd==0, it will skip the diffusion part.
-		if mintd>0, then no change of ptype before diffusion
-
-		ptype_dev_ptr = thrust::device_pointer_cast(&d_ptype[0]);				
-		zip_begin = thrust::make_zip_iterator(thrust::make_tuple(ptype_dev_ptr, posx_dev_ptr, posy_dev_ptr, posz_dev_ptr));
-	    zip_end   = zip_begin + numCurPar * 2;  		
-		zip_new_end = thrust::remove_if(zip_begin, zip_end, first_element_equal_255());
-
-		numCurPar = zip_new_end - zip_begin;
-		printf("current time is %f, after first step searching numCurPar = %d, the calculated mintd = %f\n", curTime, numCurPar, mintd);
-		****************************************/
-
 	    if(mintd > 0.0f) // some reactions occurs before diffusion, so no diffusion at this time step, delta t = 0
 	    {
 			if(mintd < h_deltaT || mintd >= 10000.0f)
@@ -1051,7 +1045,7 @@ void ChemList::run(DNAList ddl)
 			CUDA_CALL(cudaBindTexture(0, ptype_tex, d_ptype, sizeof(unsigned char) * numCurPar));
 			
 			nblocks = 1 + (numCurPar - 1)/NTHREAD_PERBLOCK_CHEM;
-			makeOneJump4Diffusion<<<nblocks, NTHREAD_PERBLOCK_CHEM>>>(d_posx_d, d_posy_d, d_posz_d,numCurPar);
+			makeOneJump4Diffusion<<<nblocks, NTHREAD_PERBLOCK_CHEM>>>(d_posx_d, d_posy_d, d_posz_d,numCurPar, ROIX, ROIY, ROIZ);
 			cudaDeviceSynchronize();
 		
 			binSize_diffu = sqrt(6.0f * maxDiffCoef_spec * mintd); 
@@ -1142,9 +1136,9 @@ void ChemList::run(DNAList ddl)
 			cudaUnbindTexture(posz_tex);
 			cudaUnbindTexture(ptype_tex);
 
-			cudaMemset(d_statusPar, 255, sizeof(unsigned char) * maxPar);
+			cudaMemset(d_statusPar, 255, sizeof(unsigned char) * maxPar);//iniPar)*2;
 			cudaMemset(d_statusPar, 0, sizeof(unsigned char) * numCurPar);
-			cudaMemset(d_ptype, 255, sizeof(unsigned char) * maxPar); // use 255 to mark the void entry in the new particle array					
+			cudaMemset(d_ptype, 255, sizeof(unsigned char) * maxPar);//iniPar*2); // use 255 to mark the void entry in the new particle array					
 			cudaMemcpy(d_ptype, d_ptype_s, sizeof(unsigned char) * numCurPar, cudaMemcpyDeviceToDevice);
 			
 
@@ -1163,8 +1157,8 @@ void ChemList::run(DNAList ddl)
 			cudaBindTexture(0, posz_tex, d_posz_s, sizeof(float) * numCurPar);
 			cudaBindTexture(0, ptype_tex, d_ptype_s, sizeof(unsigned char) * numCurPar);
 
-            elapseReact += mintd;
-			if(elapseReact>reactInterval)
+            elapseReact += mintd;				
+			 if(elapseReact>reactInterval)
             {
                 CUDA_CALL(cudaMemset(d_recordposition, 0, sizeof(float4)*totalIni)); //clear positions
                 nblocks = 1 + (numCurPar - 1)/NTHREAD_PERBLOCK_CHEM;
@@ -1173,9 +1167,8 @@ void ChemList::run(DNAList ddl)
                 cudaDeviceSynchronize();
                 CUDA_CALL(cudaMemcpy(recordposition, d_recordposition, sizeof(float4)*totalIni, cudaMemcpyDeviceToHost));
                 saveResults();
-            }		
-			
-			
+            }           
+            
 			nblocks = 1 + (numCurPar - 1)/NTHREAD_PERBLOCK_CHEM;
 			react4TimeStep_afterDiffusion<<<nblocks, NTHREAD_PERBLOCK_CHEM>>>(d_posx, d_posy, d_posz, d_ptype, d_gridParticleHash, d_idxnzBin_neig, d_idxnzBin_numNeig, d_nzBinidx, d_accumParidxBin, d_statusPar, numBinx, numBiny, numBinz, numNZBin, numCurPar, idx_typedeltaT);	
 			cudaDeviceSynchronize();
@@ -1206,19 +1199,22 @@ void ChemList::run(DNAList ddl)
 		idx_iter++;
 
         elapseRecord += mintd;
-        if(elapseRecord>recordInterval)
+        float oldCount=(recordCount-1)>0?(recordCount-1):0; // Log
+        // if(elapseRecord>recordInterval) // Non Log
+        if(elapseRecord>(pow(10,recordCount*recordInterval)-pow(10,oldCount*recordInterval)))
         {
+            
             saveNvsTime();
             elapseRecord = 0;
+            recordCount+=1; // Log
         }
 
-        if(idx_iter%100==0) printf("idx_iter = %d # of radicals = %d\n", idx_iter,numCurPar);   
+        //if(idx_iter%100==0) printf("idx_iter = %d # of radicals = %d\n", idx_iter,numCurPar);   
     }
-    free(recordposition);
-    CUDA_CALL(cudaFree(d_recordposition));
+//    free(recordposition);
+//    CUDA_CALL(cudaFree(d_recordposition));
     uniBinidxPar_dev_vec.clear();
 }
-
 __device__ int judge_par_before(int* dev_chromatinIndex,int* dev_chromatinStart,int* dev_chromatinType, CoorBasePair* dev_straightChrom,
     CoorBasePair* dev_bendChrom,float3* dev_straightHistone,float3* dev_bendHistone,float3 pos_cur_target,
     int3 index, int id, curandState* plocalState,float4* d_recordposition)
@@ -1265,7 +1261,7 @@ mindis = caldistance(newpos, histone[j])-RHISTONE;
 if(mindis < 0) return 1;
 }
 if(ptype_target==1 || ptype_target==0) //only consider .OH and e- now
-{	
+{   
 for(int j=0;j<chromNum;j++)
 {
 // can take the size of base into consideration, distance should be distance-r;
@@ -1408,9 +1404,9 @@ dpre[0] = caldistance(pastpos, histone[j])-RHISTONE;
 prob_react = expf(-1.0f*dpre[0]*mindis/d_diffCoef_spec[ptype_target]/d_deltaT);
 if(curand_uniform(plocalState)<prob_react) return 1;
 }
-}	
+}   
 if(ptype_target==1 || ptype_target==0) //only consider .OH and e- now
-{	
+{   
 for(int j=0;j<chromNum;j++)
 {
 mindis=100,minindex=-1;
@@ -1434,7 +1430,7 @@ d_recordposition[id].x = pos_cur_target.x;
 d_recordposition[id].y = pos_cur_target.y;
 d_recordposition[id].z = pos_cur_target.z;
 d_recordposition[id].w = 1;
-}					
+}                   
 return 1;
 }
 
@@ -1468,7 +1464,7 @@ d_recordposition[id].w = 1;
 return 1;
 }//*/
 }
-}	
+}   
 }
 return 0;
 }

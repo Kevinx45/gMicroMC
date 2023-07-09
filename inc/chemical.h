@@ -3,7 +3,6 @@
 
 #include "global.h"
 #include "DNAList.h"
-
 #include <vector>
 using namespace std;
 
@@ -13,12 +12,12 @@ using namespace std;
 #define MAXNUMREACTANT4REACT 3 // maximum number of reactant a reaction may have
 #define MAXNUMNEWPAR4REACT 3 // maximum number of new particles generated in a reaction
 #define NUMDIFFTIMESTEPS 5 // number of different time steps used during chemistry stage
-#define MAXNUMNZBIN 300000 //maximum number of non-zero bins
+#define MAXNUMNZBIN 524288//300000 //maximum number of non-zero bins
 #define MAXNUMBIN 25000000000 // maximum number of bins
 #define MAXNUMTAGBIN (MAXNUMBIN/32) //use 1 bit to denote one bin, use unsigned int (32 bit) to store this tag data of non-zero bin 
 #define MAXCANDIDATE 100 // maximal number of the candidate reactions stored for each particle at the current time step
 #define NUMOUTPUTMEM 20
-#define NUMOXYGEN 0
+#define NUMOXYGEN 0 //21% 0.27mM 162594 N/um3
 
 class ChemList
 {
@@ -39,8 +38,10 @@ public:
 
 	void run(DNAList ddl);
 
+	void test();
+
 	void saveNvsTime();
-	void saveResults();
+  void saveResults();
 
 public:
 //parameters for reactants
@@ -62,7 +63,7 @@ public:
 	float h_deltaT_adap[NUMDIFFTIMESTEPS]; // five different time steps to be adaptively used during the chemistry stage
 	float calc_radii_React[MAXREACTION * NUMDIFFTIMESTEPS]={0};	
 	float max_calc_radii_React[NUMDIFFTIMESTEPS]={0};
-	float reactTemCoef[21] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	float reactTemCoef[MAXREACTION] = {1};
   
 // for radicals
 	float *posx, *posy, *posz, *ttime;
@@ -76,8 +77,7 @@ public:
 	int h_deltaidxBin_neig[27];
 	const int NTHREAD_PERBLOCK_CHEM = 256;
 	float curTime = 1, recordInterval = 1, elapseRecord = 0, reactInterval = 1, elapseReact = 0;
-	float4* recordposition;
-
+  float4* recordposition;
 // GPU variables
 	float *d_posx, *d_posy, *d_posz; //variables to store the original particle position for each time step and store the generated new particles at the end of the time step
 	float *d_posx_d, *d_posy_d, *d_posz_d; // variables to store the new particle positions of d_posx, d_posy, d_posz after diffusion
@@ -101,7 +101,7 @@ public:
 	int *d_idxnzBin_numNeig;
 
 	float *d_mintd_Par;
-	float4* d_recordposition;
+ 	float4* d_recordposition;
 };
 
 
