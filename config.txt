@@ -8,6 +8,7 @@
 	"NTHREAD_PER_BLOCK": 256,
 	"verbose":3,
 	"targetEneDep": 2.5, //MeV, 
+	"simMode": 0, // 0 for G0/G1 phase, 1 for metaphase
 //physics stage
 	"GPUBaseMemory":300, // in MB
 	"nSecondPer100keV":8000, //5000
