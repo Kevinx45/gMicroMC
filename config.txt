@@ -8,6 +8,7 @@
 	"NTHREAD_PER_BLOCK": 256,
 	"verbose":3,
 	"targetEneDep": 2.5, //MeV, 
+	"simMode":1,
 //physics stage
 	"GPUBaseMemory":300, // in MB
 	"nSecondPer100keV":8000, //5000

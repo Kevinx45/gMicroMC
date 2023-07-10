@@ -629,10 +629,21 @@ void DNAList::run()
 	combinePhysics* d_recordc;
 	CUDA_CALL(cudaMalloc((void**)&d_recordc,sizeof(combinePhysics)*totalchem));
 
-	chemSearch<<<NRAND/256,256>>>(totalchem, dev_chemdrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
+	int simMode = document["simMode"].GetInt();
+  	if (simMode==0){
+    	printf("G0/G1 Phase simulation\n");
+    	chemSearch<<<NRAND/256,256>>>(totalchem, dev_chemdrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
 								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recordc);
-	cudaDeviceSynchronize();
-	CUDA_CALL(cudaFree(dev_chemdrop));
+		cudaDeviceSynchronize();
+		CUDA_CALL(cudaFree(dev_chemdrop));
+     
+  	}
+  	else if (simMode==1){
+    	printf("Metaphase simulation\n");
+    	//Code to do metaphase chemsearch
+  	}
+  else{printf("Invalid simMode. simMode should be 0(G0/G1) or 1(metaphase).\n");}
+
 
 	combinePhysics* recordc=(combinePhysics*)malloc(sizeof(combinePhysics)*totalchem);		 
 	CUDA_CALL(cudaMemcpy(recordc, d_recordc, sizeof(combinePhysics)*totalchem,cudaMemcpyDeviceToHost));
