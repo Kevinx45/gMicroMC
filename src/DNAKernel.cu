@@ -629,21 +629,8 @@ void DNAList::run()
 	combinePhysics* d_recordc;
 	CUDA_CALL(cudaMalloc((void**)&d_recordc,sizeof(combinePhysics)*totalchem));
 
-	int simMode = document["simMode"].GetInt();
-
-	if(simMode == 0)
-	{
 	chemSearch<<<NRAND/256,256>>>(totalchem, dev_chemdrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
 								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recordc);
-	}
-	else if(simMode == 1)
-	{
-		//insert code here
-	}
-	else
-	{
-		std::cout << "Invalid Simulation Mode" << std::endl;
-	}
 	cudaDeviceSynchronize();
 	CUDA_CALL(cudaFree(dev_chemdrop));
 
