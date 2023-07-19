@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# make sure we have an argument
+if [ "$#" -ne 1 ]; then
+ echo "Need 1 parameter, got $#"
+ exit 1
+fi
+
+# get the file path
+src_file_path="$PWD/$1.cpp"
+run_file_path="$PWD/$1"
+
+if [ ! -f "$src_file_path" ]; then
+    echo "$src_file_path does not exists"
+    exit 1
+fi
+
+# remove the old
+
+if [ -f "$run_file_path" ]; then
+    rm $run_file_path
+fi
+
+# compile
+
+g++ $src_file_path -o $run_file_path
+$run_file_path
