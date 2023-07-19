@@ -59,6 +59,8 @@ int main()
 		//if(irun>3) break; // uncomment this line when you are testing code for safety
 	}
 	}
+
+
 	
 	PrechemList pcl;
 	if(document["startStage"].GetInt()<2)
@@ -69,6 +71,10 @@ int main()
 	}
 	
 	
+
+
+	if(document["simMode"].GetInt()==0)
+	{
 	ChemList cl;
     DNAList ddl;
 	
@@ -92,7 +98,26 @@ int main()
 				ddl.saveResults();
 			}
 		}
-	
+	}
+	else if (document["simMode"].GetInt() == 1)
+	{
+		system("cp ./output/totalphy.dat ./meta/chem_stage/Results");
+		system("cd ./meta/chem_stage && ./compile_cuMC");
+
+
+		if(document["metaDamageMode"].GetInt() == 0)
+		{
+			system("cd ./meta/chem_stage && ./chem 0 1000 0");
+		}
+		else if(document["metaDamageMode"].GetInt() == 1)
+		{
+			system("cd ./meta/chem_stage && ./chem 0 1000 1");
+		}
+		else
+		{
+			printf("invalid metaDamageMode, must be either 0 or 1");
+		}
+	}
 	CUDA_CALL(cudaFree(cuseed));
 	return 0;
 }

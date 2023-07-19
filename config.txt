@@ -8,7 +8,7 @@
 	"NTHREAD_PER_BLOCK": 256,
 	"verbose":3,
 	"targetEneDep": 2.5e6, //eV,
-	"simMode": 0, 
+	"simMode": 1, //0 for G0/G1, 1 for metaphase
 //physics stage
 	"GPUBaseMemory":300, // in MB
 	"nSecondPer100keV":5000,
@@ -77,6 +77,7 @@
 	"pTupleFile":"./output/pTuple.dat",	
 	"saveInterval":0.2, //ps
 	"fileForChemOutput":"./output/chemRes.dat",
+	"metaDamageMode": 1, //0 for no damage analysis, 1 for damage analysis
 //DNA related
 	"bentChromatin":"./tables/dna/BentChromatinFiberUnitTable.txt", // files for reading DNA structure
 	"bentHistone":"./tables/dna/BentHistonesTable.txt",
