@@ -1,5 +1,5 @@
 #ifndef DNAKERNELMETA_CUH
 #define DNAKERNELMETA_CUH
 
-#include "DNAList.h"
+#include "microMC_chem.h"
 #include "global.h"
