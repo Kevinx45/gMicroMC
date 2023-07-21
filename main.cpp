@@ -101,17 +101,17 @@ int main()
 	}
 	else if (document["simMode"].GetInt() == 1)
 	{
-		system("cp ./output/totalphy.dat ./meta/chem_stage/Results");
-		system("cd ./meta/chem_stage && ./compile_cuMC");
+		system("cp ./output/totalphy.dat ./chem_stage/Results");
+		system("cd ./chem_stage && ./compile_cuMC");
 
 
 		if(document["metaDamageMode"].GetInt() == 0)
 		{
-			system("cd ./meta/chem_stage && ./chem 0 1000 0");
+			system("cd ./chem_stage && ./chem 0 1000 0");
 		}
 		else if(document["metaDamageMode"].GetInt() == 1)
 		{
-			system("cd ./meta/chem_stage && ./chem 0 1000 1");
+			system("cd ./chem_stage && ./chem 0 1000 1");
 		}
 		else
 		{
