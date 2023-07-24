@@ -4,7 +4,7 @@ __constant__ float min1, min2, min3, max1, max2, max3;
 __constant__  float d_rDNA[72];
 void DNAList:: initDNA()
 {
-int* dev_chromatinIndex;
+		int* dev_chromatinIndex;
 		int* dev_chromatinStart;
 		int* dev_chromatinType;
 		CoorBasePair* dev_straightChrom;
