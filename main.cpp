@@ -101,18 +101,22 @@ int main()
 	}
 	else if (document["simMode"].GetInt() == 1)
 	{
-		system("cp ./output/totalphy.dat ./meta/Results");
-		system("cd ./meta && ./compile_cuMC");
+		ChemList cl;
+    		DNAList ddl;
+
+		ddl.initDNAMeta();
+		// system("cp ./output/totalphy.dat ./meta/Results");
+		// system("cd ./meta && ./compile_cuMC");
 
 
-		if(document["metaDamageMode"].GetInt() == 0)
-		{
-			system("cd ./meta && ./chem 0 1000 0");
-		}
-		else if(document["metaDamageMode"].GetInt() == 1)
-		{
-			system("cd ./meta && ./chem 0 1000 1");
-		}
+		// if(document["metaDamageMode"].GetInt() == 0)
+		// {
+		// 	system("cd ./meta && ./chem 0 1000 0");
+		// }
+		// else if(document["metaDamageMode"].GetInt() == 1)
+		// {
+		// 	system("cd ./meta && ./chem 0 1000 1");
+		// }
 		else
 		{
 			printf("invalid metaDamageMode, must be either 0 or 1");
