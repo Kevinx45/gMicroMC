@@ -2,7 +2,9 @@
 __constant__  int neighborindex[27];
 __constant__ float min1, min2, min3, max1, max2, max3;
 __constant__  float d_rDNA[72];
-		int* dev_chromatinIndex;
+void DNAList:: initDNA()
+{
+int* dev_chromatinIndex;
 		int* dev_chromatinStart;
 		int* dev_chromatinType;
 		CoorBasePair* dev_straightChrom;
@@ -379,3 +381,4 @@ __constant__  float d_rDNA[72];
 				// printf("\n**********\neffective physics damage is %d\n**********", totalphy);
 				free(recorde);
 				CUDA_CALL(cudaFree(d_recorde));
+}
