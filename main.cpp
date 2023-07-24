@@ -101,6 +101,7 @@ int main()
 	}
 	else if (document["simMode"].GetInt() == 1)
 	{
+		ddl.initDNAMeta();
 		system("cp ./output/totalphy.dat ./meta/Results");
 		system("cd ./meta && ./compile_cuMC");
 
