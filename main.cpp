@@ -109,14 +109,14 @@ int main()
 		// system("cd ./meta && ./compile_cuMC");
 
 
-		// if(document["metaDamageMode"].GetInt() == 0)
-		// {
-		// 	system("cd ./meta && ./chem 0 1000 0");
-		// }
-		// else if(document["metaDamageMode"].GetInt() == 1)
-		// {
-		// 	system("cd ./meta && ./chem 0 1000 1");
-		// }
+		if(document["metaDamageMode"].GetInt() == 0)
+		{
+			system("cd ./meta && ./chem 0 1000 0");
+		}
+		else if(document["metaDamageMode"].GetInt() == 1)
+		{
+			system("cd ./meta && ./chem 0 1000 1");
+		}
 		else
 		{
 			printf("invalid metaDamageMode, must be either 0 or 1");
