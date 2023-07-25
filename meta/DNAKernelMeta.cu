@@ -2,7 +2,7 @@
 __constant__  int neighborindex[27];
 __constant__ float min1, min2, min3, max1, max2, max3;
 __constant__  float d_rDNA[72];
-void DNAList:: initDNA()
+void DNAList:: initDNAMeta()
 {
 		int* dev_chromatinIndex;
 		int* dev_chromatinStart;
