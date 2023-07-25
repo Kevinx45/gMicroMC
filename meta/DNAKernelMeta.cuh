@@ -2,6 +2,7 @@
 #define DNAKERNELMETA_CUH
 
 #include "microMC_chem.h"
+#include "DNAList.h"
 #include "global.h"
 
 
