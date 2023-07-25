@@ -51,6 +51,7 @@ public:
     DNAList();
     virtual ~DNAList();
     void initDNA();
+    void initDNAMeta();
     void saveResults();
     void calDNAreact_radius(float* diffCoeff);
     Edeposit* readStage(int *numPhy,int mode, const char* fname);
