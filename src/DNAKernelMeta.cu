@@ -381,6 +381,7 @@ void DNAList:: initDNAMeta()
 				// printf("\n**********\neffective physics damage is %d\n**********", totalphy);
 				free(recorde);
 				CUDA_CALL(cudaFree(d_recorde));
+				}
 
 cout<<"finished initializing metaphase"<<endl;
 }
