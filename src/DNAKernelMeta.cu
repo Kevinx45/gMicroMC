@@ -58,7 +58,7 @@ void DNAList:: initDNAMeta()
 		// X-CHROMOSOMES, there are 46 of them 
 		cout << "Reading the chromosomes and types?\n";
 		ifstream fin;
-		fin.open("./table/chromosome_coordinates_v6.txt"); // v5 has 0,0,0 chromosome
+		fin.open("../tables/metadna/chromosome_coordinates_v6.txt"); // v5 has 0,0,0 chromosome
 		float fdata[3];
 		// CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM);
 		float3 *chromosome = (float3*)malloc(sizeof(float3) * NUMCHROMOSOMES);
