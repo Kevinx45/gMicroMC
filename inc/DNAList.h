@@ -11,6 +11,20 @@
 #define STRAIGHT_HISTONE_NUM 30
 #define UNITLENGTH 55 // size of a voxel in nm
 
+//metaphase DNA structure variables
+#define NUCLEUS_DIM_META 67 //# of bins cylinder
+#define NUCLEUS_DIM_Z_META 42 // height of the cylinder
+#define STRAIGHT_BP_NUM_META 200
+#define BEND_BP_NUM_META 200
+#define SEGMENT_BP_NUM_META 17
+#define BEND_HISTONE_NUM_META 1
+#define STRAIGHT_HISTONE_NUM_META 1
+#define UNITLENGTH_META 11
+#define NUMCHROMOSOMES_META 46
+#define CYLINDERRADIUS_META ((NUCLEUS_DIM * UNITLENGTH) / 2)
+#define CYLINDERHEIGHT_META (NUCLEUS_DIM_Z * UNITLENGTH)
+#define TOTALBP_META 25633020
+
 #define EMIN 18
 #define EMAX 18
 #define PROBCHEM 0.1
@@ -27,6 +41,14 @@ typedef struct
 { 
     float3 base, right, left;
 } CoorBasePair;
+
+typedef struct
+{ 
+    int index;
+    int boxindex;
+    float3 position;
+    float3 dir;
+} DNAsegment;
 
 typedef struct
 { 
