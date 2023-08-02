@@ -2,33 +2,21 @@
 __constant__  int neighborindex[27];
 __constant__ float min1, min2, min3, max1, max2, max3;
 __constant__  float d_rDNA[72];
-void DNAList:: initDNAMeta()
+void DNAList::initDNAMeta()
 {
-		int* dev_chromatinIndex;
-		int* dev_chromatinStart;
-		int* dev_chromatinType;
-		CoorBasePair* dev_straightChrom;
-		CoorBasePair* dev_segmentChrom;
-		CoorBasePair* dev_bendChrom;
-		float3* dev_straightHistone;
-		float3* dev_bendHistone;
-		float3* dev_chromosome;
-		int *dev_chromosome_type;
-		int totalspace = NUCLEUS_DIM*NUCLEUS_DIM*NUCLEUS_DIM_Z;
+  int totalspace = NUCLEUS_DIM_META*NUCLEUS_DIM_META*NUCLEUS_DIM_Z_META;
 		int *chromatinIndex = (int*)malloc(sizeof(int)*totalspace);
 		int *chromatinStart = (int*)malloc(sizeof(int)*totalspace);
 		int *chromatinType = (int*)malloc(sizeof(int)*totalspace);
+    
 		for (int k=0; k<totalspace; k++) 
 		{
 			chromatinIndex[k] = -1;
 			chromatinStart[k] = -1;
 			chromatinType[k] = -1;
 		}
-		// allocating space for the segments connecting nucleosomes
-		int* dev_segmentIndex;
-		int* dev_segmentStart;
-		int* dev_segmentType;
-		int totalspace_sub = NUCLEUS_DIM*NUCLEUS_DIM*NUCLEUS_DIM_Z * 12;
+    
+		int totalspace_sub = NUCLEUS_DIM_META*NUCLEUS_DIM_META*NUCLEUS_DIM_Z_META * 12;
 		int *segmentIndex = (int*)malloc(sizeof(int)*totalspace_sub);
 		int *segmentStart = (int*)malloc(sizeof(int)*totalspace_sub);
 		int *segmentType = (int*)malloc(sizeof(int)*totalspace_sub);
@@ -38,7 +26,44 @@ void DNAList:: initDNAMeta()
 			segmentStart[k] = -1;
 			segmentType[k] = -1;
 		}
-		int data[6];
+    
+    int* dev_chromatinIndex;
+		int* dev_chromatinStart;
+		int* dev_chromatinType;
+		CoorBasePair* dev_straightChrom;
+		CoorBasePair* dev_segmentChrom;
+		CoorBasePair* dev_bendChrom;
+		float3* dev_straightHistone;
+		float3* dev_bendHistone;
+		float3* dev_chromosome;
+    int *dev_chromosome_type;
+		// allocating space for the segments connecting nucleosomes
+		int* dev_segmentIndex;
+		int* dev_segmentStart;
+		int* dev_segmentType;
+
+
+    // X-CHROMOSOMES, there are 46 of them 
+    int data[6];
+		//cout << "Reading the chromosomes and types?\n";
+		ifstream fin;
+		fin.open("../tables/metadna/chromosome_coordinates_v6.txt"); // v5 has 0,0,0 chromosome
+		float fdata[3];
+		// CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM);
+		float3 *chromosome = (float3*)malloc(sizeof(float3) * NUMCHROMOSOMES_META);
+		int *chromosome_type = (int*)malloc(sizeof(int) * NUMCHROMOSOMES_META);
+		float ttype;
+		for (int i = 0; fin >> fdata[0] >> fdata[1] >> fdata[2] >> ttype; i++) { // 46 x-chromosomes
+			chromosome[i].x = fdata[0];
+			chromosome[i].y = fdata[1];
+			chromosome[i].z = fdata[2];
+			chromosome_type[i] = ttype;
+			if (i < 5) printf("%f %f %f %d\n", fdata[0], fdata[1], fdata[2], chromosome_type[i]);
+		}
+		fin.close();
+
+
+	
 		// long lSize;
 		// FILE* pFile=fopen("./table/WholeNucleoChromosomesTable.bin","rb");
 		// fseek (pFile , 0 , SEEK_END);
@@ -55,28 +80,12 @@ void DNAList:: initDNAMeta()
 		// }
 		// fclose(pFile);
 		
-		// X-CHROMOSOMES, there are 46 of them 
-		cout << "Reading the chromosomes and types?\n";
-		ifstream fin;
-		fin.open("../tables/metadna/chromosome_coordinates_v6.txt"); // v5 has 0,0,0 chromosome
-		float fdata[3];
-		// CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM);
-		float3 *chromosome = (float3*)malloc(sizeof(float3) * NUMCHROMOSOMES);
-		int *chromosome_type = (int*)malloc(sizeof(int) * NUMCHROMOSOMES);
-		float ttype;
-		for (int i = 0; fin >> fdata[0] >> fdata[1] >> fdata[2] >> ttype; i++) { // 46 x-chromosomes
-			chromosome[i].x = fdata[0];
-			chromosome[i].y = fdata[1];
-			chromosome[i].z = fdata[2];
-			chromosome_type[i] = ttype;
-			if (i < 5) printf("%f %f %f %d\n", fdata[0], fdata[1], fdata[2], chromosome_type[i]);
-		}
-		fin.close();
-		CUDA_CALL(cudaMalloc((void**)&dev_chromosome, NUMCHROMOSOMES * sizeof(float3)));
-		CUDA_CALL(cudaMemcpy(dev_chromosome, chromosome, NUMCHROMOSOMES * sizeof(float3), cudaMemcpyHostToDevice));
+		
+		CUDA_CALL(cudaMalloc((void**)&dev_chromosome, NUMCHROMOSOMES_META * sizeof(float3)));
+		CUDA_CALL(cudaMemcpy(dev_chromosome, chromosome, NUMCHROMOSOMES_META * sizeof(float3), cudaMemcpyHostToDevice));
 
-		CUDA_CALL(cudaMalloc((void**)&dev_chromosome_type, NUMCHROMOSOMES * sizeof(int)));
-		CUDA_CALL(cudaMemcpy(dev_chromosome_type, chromosome_type, NUMCHROMOSOMES * sizeof(int), cudaMemcpyHostToDevice));
+		CUDA_CALL(cudaMalloc((void**)&dev_chromosome_type, NUMCHROMOSOMES_META * sizeof(int)));
+		CUDA_CALL(cudaMemcpy(dev_chromosome_type, chromosome_type, NUMCHROMOSOMES_META * sizeof(int), cudaMemcpyHostToDevice));
 		
 		cout << "Time to read voxelized coordinates \n";
 		//ifstream fin;
@@ -90,7 +99,7 @@ void DNAList:: initDNAMeta()
 			if(i<5) printf("%d %d %d %d %d %d\n", data[0], data[1], data[2], data[3], data[4], data[5]);
 			// first 3 are indicies
 			if (data[3] == 0) {
-				int index = data[0] + data[1] * NUCLEUS_DIM + data[2] * NUCLEUS_DIM * NUCLEUS_DIM;
+				int index = data[0] + data[1] * NUCLEUS_DIM_META + data[2] * NUCLEUS_DIM_META * NUCLEUS_DIM_META;
 				chromatinIndex[index] = data[3]; // index of the extra nucleosome ?
 				chromatinStart[index] = data[4]; // bp index 200
 				chromatinType[index] = data[5]; // type
@@ -138,7 +147,7 @@ void DNAList:: initDNAMeta()
 					}
 				}
 				// index = x + y * NUCLEUS_DIM + z * NUCLEUS_DIM * NUCLEUS_DIM; // current id of the voxel
-				int index = xx + yy * NUCLEUS_DIM + zz * NUCLEUS_DIM * NUCLEUS_DIM;
+				int index = xx + yy * NUCLEUS_DIM_META + zz * NUCLEUS_DIM_META * NUCLEUS_DIM_META;
 				int sub_index = index * 12; // shifted index to accommodate 12 subvoxels
 				sub_index += subvoxel_id;
 				// [544.5, 170.5, 93.5]
@@ -176,14 +185,14 @@ void DNAList:: initDNAMeta()
 	    free(segmentType);
 		// end copying segments
 		// Loading segment template
-		CoorBasePair *SegmentChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*SEGMENT_BP_NUM);
+		CoorBasePair *SegmentChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*SEGMENT_BP_NUM_META);
 		const char *segment = "./table/NucleosomeTableSegment.txt";
 		printf("Straight Chromatin Table: Reading %s\n", segment);
 		FILE *fpSegment = fopen(segment,"r");
 		float dump_float;
     	int dump;
 		float bx, by, bz, rx, ry, rz, lx, ly, lz;
-	    for (int i=0; i<SEGMENT_BP_NUM; i++)
+	    for (int i=0; i<SEGMENT_BP_NUM_META; i++)
 		{
 		    fscanf(fpSegment,"%f %f %f %f %f %f %f %f %f %f\n", &dump_float, &bx, &by, &bz, &rx, &ry, &rz, &lx, &ly, &lz);
 			dump = dump_float;
@@ -199,18 +208,18 @@ void DNAList:: initDNAMeta()
 			SegmentChrom[i].left.z = lz;
 		}
 		fclose(fpSegment);
-		CUDA_CALL(cudaMalloc((void**)&dev_segmentChrom, SEGMENT_BP_NUM * sizeof(CoorBasePair)));
-		CUDA_CALL(cudaMemcpy(dev_segmentChrom, SegmentChrom, SEGMENT_BP_NUM * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
+		CUDA_CALL(cudaMalloc((void**)&dev_segmentChrom, SEGMENT_BP_NUM_META * sizeof(CoorBasePair)));
+		CUDA_CALL(cudaMemcpy(dev_segmentChrom, SegmentChrom, SEGMENT_BP_NUM_META * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
 		//
 
-		CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM);
+		CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM_META);
 		const char *straight = "./table/NucleosomeTable200StraightZ.txt";
 		printf("Straight Chromatin Table: Reading %s\n", straight);
 		FILE *fpStraight = fopen(straight,"r");
 		// float dump_float;
     	// int dump;
 		// float bx, by, bz, rx, ry, rz, lx, ly, lz;
-	    for (int i=0; i<STRAIGHT_BP_NUM; i++)
+	    for (int i=0; i<STRAIGHT_BP_NUM_META; i++)
 		{
 		    fscanf(fpStraight,"%f %f %f %f %f %f %f %f %f %f\n", &dump_float, &bx, &by, &bz, &rx, &ry, &rz, &lx, &ly, &lz);
 			dump = dump_float;
@@ -226,10 +235,10 @@ void DNAList:: initDNAMeta()
 			StraightChrom[i].left.z = lz;
 		}
 		fclose(fpStraight);
-		CUDA_CALL(cudaMalloc((void**)&dev_straightChrom, STRAIGHT_BP_NUM * sizeof(CoorBasePair)));
-		CUDA_CALL(cudaMemcpy(dev_straightChrom, StraightChrom, STRAIGHT_BP_NUM * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
+		CUDA_CALL(cudaMalloc((void**)&dev_straightChrom, STRAIGHT_BP_NUM_META * sizeof(CoorBasePair)));
+		CUDA_CALL(cudaMemcpy(dev_straightChrom, StraightChrom, STRAIGHT_BP_NUM_META * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
 
-		CoorBasePair *BendChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*BEND_BP_NUM);
+		CoorBasePair *BendChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*BEND_BP_NUM_META);
 		const char *bend = "./table/NucleosomeTable200SideZ.txt";
 		printf("Bend Chromatin Table: Reading %s\n", bend);
 		FILE *fpBend = fopen(bend,"r");
@@ -249,15 +258,15 @@ void DNAList:: initDNAMeta()
 			BendChrom[i].left.z = lz;
 		}
 		fclose(fpBend);
-		CUDA_CALL(cudaMalloc((void**)&dev_bendChrom, BEND_BP_NUM * sizeof(CoorBasePair)));
-		CUDA_CALL(cudaMemcpy(dev_bendChrom, BendChrom, BEND_BP_NUM * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
+		CUDA_CALL(cudaMalloc((void**)&dev_bendChrom, BEND_BP_NUM_META * sizeof(CoorBasePair)));
+		CUDA_CALL(cudaMemcpy(dev_bendChrom, BendChrom, BEND_BP_NUM_META * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
 		
 		float hisx, hisy, hisz;
-		float3* bendHistone = (float3*)malloc(sizeof(float3)*BEND_HISTONE_NUM);
+		float3* bendHistone = (float3*)malloc(sizeof(float3)*BEND_HISTONE_NUM_META);
 		const char *bent = "./table/BentHistonesTable1.txt";
 		printf("Bent Histone Table: Reading %s\n", bent);
 		FILE *fpBentH = fopen(bent,"r");
-	    for (int i=0; i<BEND_HISTONE_NUM; i++)
+	    for (int i=0; i<BEND_HISTONE_NUM_META; i++)
 		{
 		    fscanf(fpBentH,"%f %f %f\n", &hisx, &hisy, &hisz);
 		    //if(i<5) printf("%f %f %f\n", hisx, hisy, hisz);
@@ -266,14 +275,14 @@ void DNAList:: initDNAMeta()
 			bendHistone[i].z = hisz;
 		}
 		fclose(fpBentH);
-		CUDA_CALL(cudaMalloc((void**)&dev_bendHistone, BEND_HISTONE_NUM * sizeof(float3)));
-		CUDA_CALL(cudaMemcpy(dev_bendHistone, bendHistone, BEND_HISTONE_NUM * sizeof(float3), cudaMemcpyHostToDevice));
+		CUDA_CALL(cudaMalloc((void**)&dev_bendHistone, BEND_HISTONE_NUM_META * sizeof(float3)));
+		CUDA_CALL(cudaMemcpy(dev_bendHistone, bendHistone, BEND_HISTONE_NUM_META * sizeof(float3), cudaMemcpyHostToDevice));
 		
-		float3 *straightHistone = (float3*)malloc(sizeof(float3)*STRAIGHT_HISTONE_NUM);
+		float3 *straightHistone = (float3*)malloc(sizeof(float3)*STRAIGHT_HISTONE_NUM_META);
 		const char *straiHistone = "./table/StraightHistonesTable1.txt";
 		printf("Straight Histone Table: Reading %s\n", straiHistone);
 		FILE *fpStraiH = fopen(straiHistone,"r");
-	    for (int i=0; i<STRAIGHT_HISTONE_NUM; i++)
+	    for (int i=0; i<STRAIGHT_HISTONE_NUM_META; i++)
 		{
 		    fscanf(fpStraiH,"%f %f %f\n", &hisx, &hisy, &hisz);
 		    //if(i<5) printf("%f %f %f\n", hisx, hisy, hisz);
@@ -282,8 +291,8 @@ void DNAList:: initDNAMeta()
 			straightHistone[i].z = hisz;
 		}
 		fclose(fpStraiH);
-		CUDA_CALL(cudaMalloc((void**)&dev_straightHistone, STRAIGHT_HISTONE_NUM * sizeof(float3)));
-		CUDA_CALL(cudaMemcpy(dev_straightHistone, straightHistone, STRAIGHT_HISTONE_NUM * sizeof(float3), cudaMemcpyHostToDevice));
+		CUDA_CALL(cudaMalloc((void**)&dev_straightHistone, STRAIGHT_HISTONE_NUM_META * sizeof(float3)));
+		CUDA_CALL(cudaMemcpy(dev_straightHistone, straightHistone, STRAIGHT_HISTONE_NUM_META * sizeof(float3), cudaMemcpyHostToDevice));
 		
 		free(StraightChrom);
 		free(BendChrom);	
