@@ -21,11 +21,11 @@
 #define STRAIGHT_HISTONE_NUM_META 1
 #define UNITLENGTH_META 11
 #define NUMCHROMOSOMES_META 46
-#define CYLINDERRADIUS_META ((NUCLEUS_DIM * UNITLENGTH) / 2)
-#define CYLINDERHEIGHT_META (NUCLEUS_DIM_Z * UNITLENGTH)
+#define CYLINDERRADIUS_META ((NUCLEUS_DIM_META * UNITLENGTH_META) / 2)
+#define CYLINDERHEIGHT_META (NUCLEUS_DIM_Z_META * UNITLENGTH_META)
 #define TOTALBP_META 25633020
 #define MAXNUMPAR_META 131072 //1048576 //524288 // maximum particles at one time
-#define MAXNUMPAR2_META MAXNUMPAR*3 //maximum particles to be stored on GPU (current particles including dead ones and new ones in a reaction)
+#define MAXNUMPAR2_META MAXNUMPAR_META*3 //maximum particles to be stored on GPU (current particles including dead ones and new ones in a reaction)
 #define MAXNUMNZBIN_META 2000000 //maximum number of non-zero bins, overlap 
 
 
