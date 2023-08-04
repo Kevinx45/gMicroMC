@@ -23,21 +23,6 @@ void DNAList::initDNAMeta()
 			segmentStart[k] = -1;
 			segmentType[k] = -1;
 		}
-    
-    int* dev_chromatinIndex;
-		int* dev_chromatinStart;
-		int* dev_chromatinType;
-		CoorBasePair* dev_straightChrom;
-		CoorBasePair* dev_segmentChrom;
-		CoorBasePair* dev_bendChrom;
-		float3* dev_straightHistone;
-		float3* dev_bendHistone;
-		float3* dev_chromosome;
-    int *dev_chromosome_type;
-		// allocating space for the segments connecting nucleosomes
-		int* dev_segmentIndex;
-		int* dev_segmentStart;
-		int* dev_segmentType;
 
 
     // X-CHROMOSOMES, there are 46 of them 
