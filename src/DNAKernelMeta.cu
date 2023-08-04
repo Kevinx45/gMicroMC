@@ -73,7 +73,7 @@ void DNAList::initDNAMeta()
 		//ifstream fin;
 		// I need to figure out how to get extra coordinates
 		// maybe I can store in the chromatin index as I'm not using it anyway
-		fin.open(document["voxilizedCoords"].GetString());
+		fin.open(document["voxelizedCoords"].GetString());
 		// ./Results/voxelized_coordinates_b_v4_connected.txt
 		for (int i=0; fin >> data[0] >> data[1] >> data[2] >> data[3] >> data[4] >> data[5]; i++)
 		{
@@ -168,8 +168,8 @@ void DNAList::initDNAMeta()
 		// end copying segments
 		// Loading segment template
 		CoorBasePair *SegmentChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*SEGMENT_BP_NUM_META);
-		const char *segment = document["straightChromatinMeta"].GetString();
-		printf("Straight Chromatin Table: Reading %s\n", segment);
+		const char *segment = document["segmentChromatinMeta"].GetString();
+		printf("Segment Chromatin Table: Reading %s\n", segment);
 		FILE *fpSegment = fopen(segment,"r");
 		float dump_float;
     	int dump;
@@ -195,7 +195,7 @@ void DNAList::initDNAMeta()
 		//
 
 		CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM_META);
-		const char *straight = document["straightChromatinTable"].GetString();
+		const char *straight = document["straightChromatinMeta"].GetString();
 		printf("Straight Chromatin Table: Reading %s\n", straight);
 		FILE *fpStraight = fopen(straight,"r");
 		// float dump_float;
