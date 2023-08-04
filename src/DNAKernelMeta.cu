@@ -425,7 +425,7 @@ __device__ float3 PosToWall(int type, float3 pos, int index)
 	return pos;
 }
 
-#if RANDGEO==0
+//#if RANDGEO==0
 __device__ float3 pos2localMeta(int type, float3 pos, int index)
 {
 //do the coordinate transformation, index is the linear index for the referred box
@@ -654,7 +654,7 @@ __device__ bool withinCylinder(float3 &a, float3 &cylinder) {
 	}
 	return 1;
 }
-__global__ void chemSearch(
+__global__ void chemSearchMeta(
 	int num, 
 	Edeposit* d_edrop, 
 	int* dev_chromatinIndex,
