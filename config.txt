@@ -90,5 +90,16 @@
 	"compareEnergy":8711450, // in eV
 	"repTimes":1,
 
+//DNA Metaphase
+	"chromCoords":""./tables/metadna/chromosome_coordinates_v6.txt",
+	"voxilizedCoords":""./tables/metadna/voxelized_v6_sides_4_4_22_a.txt",
+	"straightChromatinMeta":"./tables/metadna/NucleosomeTableSegment.txt",
+	"straightChromatinTable":"./tables/metadna/NucleosomeTable200StraightZ.txt",
+	"bentChromatinMeta":"./tables/metadna/NucleosomeTable200SideZ.txt",
+	"bendHistone":"./tables/metadna/BentHistonesTable1.txt",
+	"straightHistoneMeta":"./tables/metadna/StraightHistonesTable1.txt",
+
+
+
 	"probChem":0.4
 }
