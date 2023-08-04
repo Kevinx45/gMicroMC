@@ -44,7 +44,7 @@ void DNAList::initDNAMeta()
     int data[6];
 		std::cout << "Reading the chromosomes and types?\n";
 		std::ifstream fin;
-		fin.open("./tables/metadna/chromosome_coordinates_v6.txt"); // v5 has 0,0,0 chromosome
+		fin.open(document["chromCoords"].GetString()); // v5 has 0,0,0 chromosome
 		float fdata[3];
 		// CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM);
 		float3 *chromosome = (float3*)malloc(sizeof(float3) * NUMCHROMOSOMES_META);
@@ -88,7 +88,7 @@ void DNAList::initDNAMeta()
 		//ifstream fin;
 		// I need to figure out how to get extra coordinates
 		// maybe I can store in the chromatin index as I'm not using it anyway
-		fin.open("./tables/metadna/voxelized_v6_sides_4_4_22_a.txt");
+		fin.open(document["voxilizedCoords"].GetString());
 		// ./Results/voxelized_coordinates_b_v4_connected.txt
 		for (int i=0; fin >> data[0] >> data[1] >> data[2] >> data[3] >> data[4] >> data[5]; i++)
 		{
@@ -183,7 +183,7 @@ void DNAList::initDNAMeta()
 		// end copying segments
 		// Loading segment template
 		CoorBasePair *SegmentChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*SEGMENT_BP_NUM_META);
-		const char *segment = "./tables/metadna/NucleosomeTableSegment.txt";
+		const char *segment = document["straightChromatinMeta"].GetString();
 		printf("Straight Chromatin Table: Reading %s\n", segment);
 		FILE *fpSegment = fopen(segment,"r");
 		float dump_float;
@@ -210,7 +210,7 @@ void DNAList::initDNAMeta()
 		//
 
 		CoorBasePair *StraightChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*STRAIGHT_BP_NUM_META);
-		const char *straight = "./tables/metadna/NucleosomeTable200StraightZ.txt";
+		const char *straight = document["straightChromatinTable"].GetString();
 		printf("Straight Chromatin Table: Reading %s\n", straight);
 		FILE *fpStraight = fopen(straight,"r");
 		// float dump_float;
@@ -236,7 +236,7 @@ void DNAList::initDNAMeta()
 		CUDA_CALL(cudaMemcpy(dev_straightChrom, StraightChrom, STRAIGHT_BP_NUM_META * sizeof(CoorBasePair), cudaMemcpyHostToDevice));
 
 		CoorBasePair *BendChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*BEND_BP_NUM_META);
-		const char *bend = "./tables/metadna/NucleosomeTable200SideZ.txt";
+		const char *bend = document["bentChromatinMeta"].GetString();
 		printf("Bend Chromatin Table: Reading %s\n", bend);
 	  FILE *fpBend = fopen(bend,"r");
 	   for (int i=0; i<BEND_BP_NUM_META; i++)
@@ -260,7 +260,7 @@ void DNAList::initDNAMeta()
 		
 		float hisx, hisy, hisz;
 		float3* bendHistone = (float3*)malloc(sizeof(float3)*BEND_HISTONE_NUM_META);
-		const char *bent = "./tables/metadna/BentHistonesTable1.txt";
+		const char *bent = document["bendHistone"].GetString();
 		printf("Bent Histone Table: Reading %s\n", bent);
 		FILE *fpBentH = fopen(bent,"r");
 	    for (int i=0; i<BEND_HISTONE_NUM_META; i++)
@@ -276,7 +276,7 @@ void DNAList::initDNAMeta()
 		CUDA_CALL(cudaMemcpy(dev_bendHistone, bendHistone, BEND_HISTONE_NUM_META * sizeof(float3), cudaMemcpyHostToDevice));
 		
 		float3 *straightHistone = (float3*)malloc(sizeof(float3)*STRAIGHT_HISTONE_NUM_META);
-		const char *straiHistone = "./tables/metadna/StraightHistonesTable1.txt";
+		const char *straiHistone = document["straightHistoneMeta"].GetString();
 		printf("Straight Histone Table: Reading %s\n", straiHistone);
 		FILE *fpStraiH = fopen(straiHistone,"r");
 	    for (int i=0; i<STRAIGHT_HISTONE_NUM_META; i++)
