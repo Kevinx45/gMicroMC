@@ -1,5 +1,5 @@
 #include "DNAKernelMeta.cuh"
-#include "DNAKernel.cu"
+//#include "DNAKernel.cu"
 void DNAList::initDNAMeta()
 {
   int totalspace = NUCLEUS_DIM_META*NUCLEUS_DIM_META*NUCLEUS_DIM_Z_META;
@@ -292,6 +292,11 @@ void DNAList::initDNAMeta()
 
 
 //chemsearch starts here
+
+__device__ float caldistanceMeta(float3 pos1, float3 pos2)
+{
+	return (sqrtf((pos1.x -pos2.x)*(pos1.x -pos2.x)+(pos1.y -pos2.y)*(pos1.y -pos2.y)+(pos1.z -pos2.z)*(pos1.z -pos2.z)));
+}
 
 void calDNAreact_radius(float* rDNA,float deltat)
 {
@@ -929,9 +934,9 @@ __global__ void chemSearchMeta(
 			{
 				// can take the size of base into consideration, distance should be distance-r;
 				mindis=100,minindex=-1;
-				distance[0] = caldistance(newpos, chrom[j].base)-RBASE;
-				distance[1] = caldistance(newpos,chrom[j].left)-RSUGAR;
-				distance[2] = caldistance(newpos,chrom[j].right)-RSUGAR;
+				distance[0] = caldistanceMeta(newpos, chrom[j].base)-RBASE;
+				distance[1] = caldistanceMeta(newpos,chrom[j].left)-RSUGAR;
+				distance[2] = caldistanceMeta(newpos,chrom[j].right)-RSUGAR;
 				// if (i == 13 && j == 99) { // lol 100th 
 				// 	printf("Event within voxel %f %f %f \n and Right base pair :: %f %f %f \n",
 				// 		newpos.x, newpos.y, newpos.z,
@@ -968,9 +973,9 @@ __global__ void chemSearchMeta(
 					break;
 				}
 				int tmp = floorf(curand_uniform(&localState)/0.25);
-				distance[0] = caldistance(newpos, chrom[j].base)-RBASE-d_rDNA[tmp];
-				distance[1] = caldistance(newpos,chrom[j].left)-RSUGAR- d_rDNA[4];
-				distance[2] = caldistance(newpos,chrom[j].right)-RSUGAR- d_rDNA[4];
+				distance[0] = caldistanceMeta(newpos, chrom[j].base)-RBASE-d_rDNA[tmp];
+				distance[1] = caldistanceMeta(newpos,chrom[j].left)-RSUGAR- d_rDNA[4];
+				distance[2] = caldistanceMeta(newpos,chrom[j].right)-RSUGAR- d_rDNA[4];
 				for(int iii=0;iii<3;iii++)
 				{
 					if(mindis>distance[iii])
@@ -1062,9 +1067,9 @@ __global__ void chemSearchMeta(
 				{
 					// can take the size of base into consideration, distance should be distance-r;
 					mindis=100,minindex=-1;
-					distance[0] = caldistance(newpos, chrom[j].base)-RBASE;
-					distance[1] = caldistance(newpos,chrom[j].left)-RSUGAR;
-					distance[2] = caldistance(newpos,chrom[j].right)-RSUGAR;
+					distance[0] = caldistanceMeta(newpos, chrom[j].base)-RBASE;
+					distance[1] = caldistanceMeta(newpos,chrom[j].left)-RSUGAR;
+					distance[2] = caldistanceMeta(newpos,chrom[j].right)-RSUGAR;
 					
 					for(int iii=0;iii<3;iii++)
 					{
@@ -1097,9 +1102,9 @@ __global__ void chemSearchMeta(
 						break;
 					}
 					int tmp = floorf(curand_uniform(&localState)/0.25);
-					distance[0] = caldistance(newpos, chrom[j].base)-RBASE-d_rDNA[tmp];
-					distance[1] = caldistance(newpos,chrom[j].left)-RSUGAR- d_rDNA[4];
-					distance[2] = caldistance(newpos,chrom[j].right)-RSUGAR- d_rDNA[4];
+					distance[0] = caldistanceMeta(newpos, chrom[j].base)-RBASE-d_rDNA[tmp];
+					distance[1] = caldistanceMeta(newpos,chrom[j].left)-RSUGAR- d_rDNA[4];
+					distance[2] = caldistanceMeta(newpos,chrom[j].right)-RSUGAR- d_rDNA[4];
 					for(int iii=0;iii<3;iii++)
 					{
 						if(mindis>distance[iii])
