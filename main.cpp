@@ -105,6 +105,16 @@ int main()
     		DNAList ddl;
 
 		ddl.initDNAMeta();
+
+		//testing if initialization copied to GPU
+		CoorBasePair *SegmentChrom = (CoorBasePair*)malloc(sizeof(CoorBasePair)*SEGMENT_BP_NUM_META);
+   		cudaMemcpy(SegmentChrom, ddl.dev_segmentChrom, SEGMENT_BP_NUM_META * sizeof(CoorBasePair), cudaMemcpyDeviceToHost);
+    		for(int i = 0; i < 5; i++)
+    		{
+    		std::cout << SegmentChrom[i].base.z << endl;
+    		}
+
+		
 		// system("cp ./output/totalphy.dat ./meta/Results");
 		// system("cd ./meta && ./compile_cuMC");
 
