@@ -91,8 +91,8 @@
 	"repTimes":1,
 
 //DNA Metaphase
-	"chromCoords":""./tables/metadna/chromosome_coordinates_v6.txt",
-	"voxilizedCoords":""./tables/metadna/voxelized_v6_sides_4_4_22_a.txt",
+	"chromCoords":"./tables/metadna/chromosome_coordinates_v6.txt",
+	"voxilizedCoords":"./tables/metadna/voxelized_v6_sides_4_4_22_a.txt",
 	"straightChromatinMeta":"./tables/metadna/NucleosomeTableSegment.txt",
 	"straightChromatinTable":"./tables/metadna/NucleosomeTable200StraightZ.txt",
 	"bentChromatinMeta":"./tables/metadna/NucleosomeTable200SideZ.txt",
