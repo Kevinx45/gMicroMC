@@ -25,6 +25,7 @@
 #define CYLINDERHEIGHT_META (NUCLEUS_DIM_Z * UNITLENGTH)
 #define TOTALBP_META 25633020
 
+
 #define EMIN 18
 #define EMAX 18
 #define PROBCHEM 0.1
@@ -87,10 +88,9 @@ public:
     int complexity[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};//SSB,2xSSB, SSB+, 2SSB, DSB, DSB+, DSB++
 	int results[7]={0,0,0,0,0,0,0};//SSBd, SSbi, SSbm, DSBd, DSBi, DSBm, DSBh.
     //GPU
-    CoorBasePair *dev_bendChrom, *dev_straightChrom;
-    float3 *dev_bendHistone, *dev_straightHistone;
-    int *dev_chromatinIndex, *dev_chromatinStart, *dev_chromatinType;
-
+    CoorBasePair *dev_bendChrom, *dev_straightChrom, *dev_segmentChrom;
+    float3 *dev_bendHistone, *dev_straightHistone, *dev_chromosome;
+    int *dev_chromatinIndex, *dev_chromatinStart, *dev_chromatinType, *dev_chromosome_type, *dev_segmentIndex, *dev_segmentStart, *dev_segmentType;
 };
 
 struct compare_dnaindex
