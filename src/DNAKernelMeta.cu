@@ -673,7 +673,7 @@ __global__ void chemSearch(
 	int *dev_segmentType)
 {
 	int id = blockIdx.x*blockDim.x+ threadIdx.x;
-	curandState localState = cuseed[id%MAXNUMPAR2];
+	curandState localState = cuseed[id%MAXNUMPAR2_META];
 	float3 newpos, pos_cur_target;
 	int3 index;
 	CoorBasePair* chrom;
@@ -1126,5 +1126,5 @@ __global__ void chemSearch(
 		}
 		id+=blockDim.x*gridDim.x;
 	}
-	cuseed[id%MAXNUMPAR2]=localState;
+	cuseed[id%MAXNUMPAR2_META]=localState;
 }
