@@ -985,7 +985,7 @@ __global__ void chemSearch(
 					{
 						// event thread id 
 						d_recorde[id].site.x = id_chromosome; 
-						d_recorde[id].site.y = (dev_chromatinStart[newindex]+j) + TOTALBP * id_cylinder;  
+						d_recorde[id].site.y = (dev_chromatinStart[newindex]+j) + TOTALBP_META * id_cylinder;  
 						// X-chromosome id //  
 						d_recorde[id].site.z = 3+minindex; // left or right
 						d_recorde[id].site.w = 1; // chem
@@ -1052,7 +1052,7 @@ __global__ void chemSearch(
 					// || newpos.y>(max2+SPACETOBODER) || newpos.z>(max3+SPACETOBODER))
 					// 	continue;
 					chrom=dev_segmentChrom;
-					chromNum=SEGMENT_BP_NUM;
+					chromNum=SEGMENT_BP_NUM_META;
 				}
 				else {
 					// it's an error :)
