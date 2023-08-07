@@ -1134,7 +1134,7 @@ __global__ void chemSearchMeta(
 	cuseed[id%MAXNUMPAR2_META]=localState;
 }
 
-	__global__ void phySearch(
+	__global__ void phySearchMeta(
 	int num, 
 	Edeposit* d_edrop, 
 	int* dev_chromatinIndex,
