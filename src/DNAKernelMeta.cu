@@ -1535,7 +1535,7 @@ __global__ void chemSearchMeta(
 }//*/
 /***********************************************************************************/
 
-Edeposit* readStage(int *numPhy, int mode, int file_id)
+Edeposit* readStageMeta(int *numPhy, int mode, int file_id)
 /*******************************************************************
 c*    Reads electron reactive events from physics stage result     *
 c*    Setup electron events as a list for the DNA damages          *
