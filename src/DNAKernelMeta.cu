@@ -1554,7 +1554,7 @@ c******************************************************************/
 	int len = 0, prev_len = 0;
 	{
 		// cout << file_id << " ";
-		ifstream infile;
+		std::ifstream infile;
 		if(mode==0) {
 			string input = REALTIME_FILEIN + to_string(file_id) + "/totalphy.dat"; 
 			infile.open(input,ios::binary);
