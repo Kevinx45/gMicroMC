@@ -1132,6 +1132,7 @@ __global__ void chemSearchMeta(
 		id+=blockDim.x*gridDim.x;
 	}
 	cuseed[id%MAXNUMPAR2_META]=localState;
+}
 
 	__global__ void phySearch(
 	int num, 
