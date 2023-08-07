@@ -1556,8 +1556,8 @@ c******************************************************************/
 		// cout << file_id << " ";
 		std::ifstream infile;
 		if(mode==0) {
-			string input = "./output/totalphy.dat"; 
-			infile.open(input,ios::binary);
+			std::string input = "./output/totalphy.dat"; 
+			infile.open(input,std::ios::binary);
 			// printf("physics results: Reading %s\n", input.c_str());
 		}	
 		else {
@@ -1566,11 +1566,11 @@ c******************************************************************/
 			// printf("chemistry results: Reading %s\n", input.c_str());
 		}
 		start=infile.tellg();
-		infile.seekg(0,ios::end);
+		infile.seekg(0,std::ios::end);
 		stop=infile.tellg();
 		len=(stop-start)/16;
 		if(len==0) { infile.close(); return hs; }
-		infile.seekg(0, ios::beg);
+		infile.seekg(0,std::ios::beg);
 		// printf("Number of radicals = %d\n", len);
 		// sarray = (structName **) realloc(sarray, (sarray_len + offset) * sizeof(structName *));
 		hs = (Edeposit *)malloc(sizeof(Edeposit)*(prev_len + len));
@@ -1598,5 +1598,4 @@ c******************************************************************/
 	// cout << endl;
 	(*numPhy) += prev_len;
  	return hs;
-}
 }
