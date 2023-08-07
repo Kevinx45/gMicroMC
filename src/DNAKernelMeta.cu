@@ -1203,7 +1203,7 @@ __global__ void chemSearchMeta(
 			// Step 1.2) if for this radical we did not find
 			// anything nearby, then continue to the next :) 
 			id+=blockDim.x*gridDim.x;
-			continue ;
+			continue;
 		}
 		// printf("Near some Chromosome! %d %d\n", id, id_chromosome);
 		// if we are here means we found chromosome
@@ -1565,7 +1565,7 @@ c******************************************************************/
 			// printf("chemistry results: Reading %s\n", input.c_str());
 		}
 		start=infile.tellg();
-		infile.seekg(0, ios::end);
+		infile.seekg(0,ios::end);
 		stop=infile.tellg();
 		len=(stop-start)/16;
 		if(len==0) { infile.close(); return hs; }
