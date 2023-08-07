@@ -1532,7 +1532,6 @@ __global__ void chemSearchMeta(
 	}
 	cuseed[id%MAXNUMPAR2_META]=localState;
 }//*/
-#endif
 /***********************************************************************************/
 
 Edeposit* readStage(int *numPhy, int mode, int file_id)
