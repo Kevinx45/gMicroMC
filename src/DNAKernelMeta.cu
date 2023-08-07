@@ -1337,7 +1337,7 @@ __global__ void chemSearchMeta(
 			int type = dev_chromatinType[newindex];
 			if(type==-1 || type==0) continue;
 
-			newpos = pos2local(type, pos_cur_target, newindex);
+			newpos = pos2localMeta(type, pos_cur_target, newindex);
 			// if (id < 10) {
 				// printf("type = %d\n", type);
 				// printf("local pos %f %f %f\n", newpos.x, newpos.y, newpos.z);
