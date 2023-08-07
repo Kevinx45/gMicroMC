@@ -1368,9 +1368,9 @@ __global__ void chemSearchMeta(
 			{
 				// can take the size of base into consideration, distance should be distance-r;
 				mindis=100,minindex=-1;
-				distance[0] = caldistance(newpos, chrom[j].base)-RBASE-RPHYS;
-				distance[1] = caldistance(newpos,chrom[j].left)-RSUGAR- RPHYS;
-				distance[2] = caldistance(newpos,chrom[j].right)-RSUGAR- RPHYS;
+				distance[0] = caldistanceMeta(newpos, chrom[j].base)-RBASE-RPHYS;
+				distance[1] = caldistanceMeta(newpos,chrom[j].left)-RSUGAR- RPHYS;
+				distance[2] = caldistanceMeta(newpos,chrom[j].right)-RSUGAR- RPHYS;
 				for(int iii=0;iii<3;iii++)
 				{
 					if(mindis>distance[iii])
@@ -1397,7 +1397,7 @@ __global__ void chemSearchMeta(
 						// printf("found x\n");
 						// 26813034
 						d_recorde[id].site.x = id_chromosome; 
-						d_recorde[id].site.y = (dev_chromatinStart[newindex]+j) + TOTALBP * id_cylinder;  
+						d_recorde[id].site.y = (dev_chromatinStart[newindex]+j) + TOTALBP_META * id_cylinder;  
 						d_recorde[id].site.z = 3+minindex;
 						d_recorde[id].site.w = 0;
 						if (d_recorde[id].site.y == 8290192) {
@@ -1460,7 +1460,7 @@ __global__ void chemSearchMeta(
 				// printf("Type = %d\n", type);
 				if(type==-1 || type==0) continue;
 
-				float3 pos_within_voxel = pos2local(1, pos_cur_target, newdelta);
+				float3 pos_within_voxel = pos2localMeta(1, pos_cur_target, newdelta);
 				// array <int, 2> subs = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 				// printf("Current pos in the voxel :: %0.2f %0.2f %0.2f\n", pos_within_voxel.x, pos_within_voxel.y, pos_within_voxel.z);
 				newpos = PosToWall(type, pos_within_voxel, i % 12);
