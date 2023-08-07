@@ -1132,4 +1132,471 @@ __global__ void chemSearchMeta(
 		id+=blockDim.x*gridDim.x;
 	}
 	cuseed[id%MAXNUMPAR2_META]=localState;
+
+	__global__ void phySearch(
+	int num, 
+	Edeposit* d_edrop, 
+	int* dev_chromatinIndex,
+	int* dev_chromatinStart,
+	int* dev_chromatinType, 
+	CoorBasePair* dev_straightChrom,
+	CoorBasePair* dev_segmentChrom,
+	CoorBasePair* dev_bendChrom,
+	float3* dev_straightHistone,
+	float3* dev_bendHistone, 
+	combinePhysics* d_recorde,
+	float3 *dev_chromosome, 
+	int *dev_chromosome_type,
+	int *dev_segmentIndex,
+	int *dev_segmentStart, 
+	int *dev_segmentType)
+{
+	int id = blockIdx.x*blockDim.x+ threadIdx.x;
+	curandState localState = cuseed[id%MAXNUMPAR2_META];
+	float3 newpos, pos_cur_target;
+	int3 index;
+	CoorBasePair* chrom;
+	float3 *histone;
+	int chromNum, histoneNum,flag=0;
+	while(id<num)
+	{
+		d_recorde[id].site.x=-1;//initialize
+		d_recorde[id].site.y=-1;
+		d_recorde[id].site.z=-1;
+		d_recorde[id].site.w=-1;		
+		d_recorde[id].prob1=d_edrop[id].e;
+		d_recorde[id].prob2=0.0; //curand_uniform(&localState)*(EMAX-EMIN) + EMIN; // constant 
+		// threshold for prob2
+
+		pos_cur_target=d_edrop[id].position;
+		// ***********************************************************
+		// ***********************************************************
+		// ***********************************************************
+		// ***********************************************************
+		// here we need to modify cur position based on dev_chromosome and dev_chromosome_type
+		// Step 0) skip events too far from the y=0 plane
+		// if (id < num) {
+		// 	printf("Physical search %d %d\n", id, num);
+		// }
+
+		// if (abs(pos_cur_target.y) > 50 + CYLINDERRADIUS * 2) {
+		// 	// y position is too far from the center
+		// 	id+=blockDim.x*gridDim.x;
+		// 	continue ;
+		// }
+		// printf("Within the plane! %d\n", id);
+		// Step 1) Find nearest chromosome :)
+		bool found_nearest_chromosome = 0;
+		int id_chromosome = -1;
+		for (int i = 0; i < NUMCHROMOSOMES_META; i++) {
+			float height_up = (dev_chromosome_type[i] / 2) * CYLINDERHEIGHT_META + CYLINDERHEIGHT_META / 2;
+			float height_down = -(((dev_chromosome_type[i] - 1) / 2) * CYLINDERHEIGHT_META + CYLINDERHEIGHT_META / 2);
+			if (dist_function_sqr(pos_cur_target, dev_chromosome[i], height_up, height_down)) {
+				// FOUND NEAREST CHROMOSOME!
+				// Step 1.1) Mark
+				found_nearest_chromosome = 1;
+				id_chromosome = i;
+				break;
+			}
+		}
+		if (found_nearest_chromosome == 0) {
+			// Step 1.2) if for this radical we did not find
+			// anything nearby, then continue to the next :) 
+			id+=blockDim.x*gridDim.x;
+			continue ;
+		}
+		// printf("Near some Chromosome! %d %d\n", id, id_chromosome);
+		// if we are here means we found chromosome
+		// Step 1.3) Find nearest cylinder!
+		int ttype = dev_chromosome_type[id_chromosome];
+		int upper_part = ttype / 2;  // typy 4 :: 4 / 2 = 2 || type 5 :: 5 / 2 = 2
+		int lower_part = (ttype - 1) / 2; // type 4 :: (4 - 1) / 2 = 1 || type 5 :: (5 - 1) / 2 = 2
+		float3 nearest = dev_chromosome[id_chromosome];
+		// printf("Cur pos and chromosome %f %f %f && %f %f %f\n", 
+		// 	pos_cur_target.x, pos_cur_target.y, pos_cur_target.z, 
+		// 	nearest.x, nearest.y, nearest.z);
+		bool found_cylinder = 0;
+		int id_cylinder = -1;
+		// check lower and upper parts, cylinders
+		for (int idy = 0; idy < upper_part; idy++) {
+			// Step 1.4) Check left and right cylinders 
+			float3 left_shift;
+			left_shift.x = nearest.x + 0.0;
+			left_shift.y = nearest.y - 50 - CYLINDERRADIUS_META; 
+			left_shift.z = nearest.z + CYLINDERHEIGHT_META * (idy + 1);
+			float3 right_shift;
+			right_shift.x = nearest.x + 0.0;
+			right_shift.y = nearest.y + 50 + CYLINDERRADIUS_META; 
+			right_shift.z = nearest.z + CYLINDERHEIGHT_META * (idy + 1);
+			if (withinCylinder(pos_cur_target, left_shift)) {
+				pos_cur_target.x -= left_shift.x;
+				pos_cur_target.y -= left_shift.y;
+				pos_cur_target.z -= left_shift.z;
+				found_cylinder = 1;
+				id_chromosome = id_chromosome;
+				id_cylinder = idy + lower_part + 1;
+				break;
+			}
+			if (withinCylinder(pos_cur_target, right_shift)) {
+				pos_cur_target.x -= right_shift.x;
+				pos_cur_target.y -= right_shift.y;
+				pos_cur_target.z -= right_shift.z;
+				found_cylinder = 1;
+				id_chromosome = id_chromosome + NUMCHROMOSOMES_META; // right side chromosome
+				id_cylinder = idy + lower_part + 1;
+				break;
+			}
+		}
+		// 
+		if (!found_cylinder) {
+			for (int idy = 0; idy < lower_part; idy++) {
+				// Step 1.4) Check left and right cylinders 
+				float3 left_shift;
+				left_shift.x = nearest.x + 0.0;
+				left_shift.y = nearest.y - 50 - CYLINDERRADIUS_META; 
+				left_shift.z = nearest.z - CYLINDERHEIGHT_META * (idy + 1);
+				float3 right_shift;
+				right_shift.x = nearest.x + 0.0;
+				right_shift.y = nearest.y + 50 + CYLINDERRADIUS_META; 
+				right_shift.z = nearest.z - CYLINDERHEIGHT_META * (idy + 1);
+				if (withinCylinder(pos_cur_target, left_shift)) {
+					pos_cur_target.x -= left_shift.x;
+					pos_cur_target.y -= left_shift.y;
+					pos_cur_target.z -= left_shift.z;
+					found_cylinder = 1;
+					id_chromosome = id_chromosome;
+					id_cylinder = lower_part - 1 - idy;
+					break;
+				}
+				if (withinCylinder(pos_cur_target, right_shift)) {
+					pos_cur_target.x -= right_shift.x;
+					pos_cur_target.y -= right_shift.y;
+					pos_cur_target.z -= right_shift.z;
+					found_cylinder = 1;
+					id_chromosome = id_chromosome + NUMCHROMOSOMES_META; // right side chromosome
+					id_cylinder = lower_part - 1 - idy;
+					break;
+				}		
+			}
+		}
+		// Step 1.5) check middle part
+		if (!found_cylinder) {
+			float3 left_shift;
+			left_shift.x = nearest.x + 0.0;
+			left_shift.y = nearest.y - CYLINDERRADIUS_META; 
+			left_shift.z = nearest.z + 0.0;
+			float3 right_shift;
+			right_shift.x = nearest.x + 0.0;
+			right_shift.y = nearest.y + CYLINDERRADIUS_META; 
+			right_shift.z = nearest.z + 0.0;
+			if (withinCylinder(pos_cur_target, left_shift)) {
+				pos_cur_target.x -= left_shift.x;
+				pos_cur_target.y -= left_shift.y;
+				pos_cur_target.z -= left_shift.z;
+				found_cylinder = 1;
+				id_chromosome = id_chromosome; // left side chromosome
+				id_cylinder = lower_part;
+			}
+			else
+			if (withinCylinder(pos_cur_target, right_shift)) {
+				pos_cur_target.x -= right_shift.x;
+				pos_cur_target.y -= right_shift.y;
+				pos_cur_target.z -= right_shift.z;
+				found_cylinder = 1;
+				id_chromosome = id_chromosome + NUMCHROMOSOMES_META; // right side chromosome
+				id_cylinder = lower_part;
+			}
+		}
+
+		if (!found_cylinder) {
+			id+=blockDim.x*gridDim.x; // event id damage deposition id
+			continue ;
+		}
+		// printf("Within some cylinder! %d\n", id);
+		// cylinder was found and shifted appropiately
+		// continue as usual
+		// END OF STEP 1
+		// *******************************************
+		// *******************************************
+		// *******************************************
+		// *******************************************
+		
+		index.x=floorf(pos_cur_target.x/UNITLENGTH_META) + (NUCLEUS_DIM_META/2); // 2000 
+		index.y=floorf(pos_cur_target.y/UNITLENGTH_META) + (NUCLEUS_DIM_META/2);
+		index.z=floorf(pos_cur_target.z/UNITLENGTH_META) + (NUCLEUS_DIM_Z_META/2);
+		// printf("It thinks Nucleosome index is %d %d %d\n", 
+		// 	index.x, index.y, index.z
+		// );
+		int delta=index.x+index.y*NUCLEUS_DIM_META+index.z*NUCLEUS_DIM_META*NUCLEUS_DIM_META,minindex=-1;
+		float distance[3]={100},mindis=100;
+		for(int i=0;i<27;i++)
+		{
+			flag=0;
+			int newindex = delta+neighborindex[i];
+			if(newindex<0 || newindex > NUCLEUS_DIM_META*NUCLEUS_DIM_META*NUCLEUS_DIM_Z_META-1) continue;
+			int type = dev_chromatinType[newindex];
+			if(type==-1 || type==0) continue;
+
+			newpos = pos2local(type, pos_cur_target, newindex);
+			// if (id < 10) {
+				// printf("type = %d\n", type);
+				// printf("local pos %f %f %f\n", newpos.x, newpos.y, newpos.z);
+			// }
+			if(type<7)
+			{
+				chrom=dev_straightChrom;
+				chromNum=STRAIGHT_BP_NUM_META;
+				histone=dev_straightHistone;
+				histoneNum=STRAIGHT_HISTONE_NUM_META;
+			}
+			else
+			{
+				chrom=dev_bendChrom;
+				chromNum=BEND_BP_NUM_META;
+				histone=dev_bendHistone;
+				histoneNum=BEND_HISTONE_NUM_META;
+			}
+			// for(int j=0;j<histoneNum;j++)
+			// {
+			// 	mindis = caldistance(newpos, histone[j]) - RHISTONE;
+			// 	if(mindis < 0) flag=1;
+			// }
+			// printf("flag lol %d\n", flag);
+			if(flag) break;
+			// printf("Avoided flag\n");
+			for(int j=0;j<chromNum;j++) // 200 // nucleosome
+			{
+				// can take the size of base into consideration, distance should be distance-r;
+				mindis=100,minindex=-1;
+				distance[0] = caldistance(newpos, chrom[j].base)-RBASE-RPHYS;
+				distance[1] = caldistance(newpos,chrom[j].left)-RSUGAR- RPHYS;
+				distance[2] = caldistance(newpos,chrom[j].right)-RSUGAR- RPHYS;
+				for(int iii=0;iii<3;iii++)
+				{
+					if(mindis>distance[iii])
+					{
+						mindis=distance[iii];
+						minindex=iii;
+					}
+				}
+				// 
+				// if (mindis < 1.0) {
+				// 	printf("mindis %f  and bp_id = %d\n", mindis, j);
+				// }
+				if(mindis<0)
+				{
+					// printf("found mindis %f\n", mindis);
+					if(minindex>0)
+					{
+						//[10 8 7 6 6 .... ] 
+						// [0 1 2 3 4] index of a X-chromosome
+						// [10 19 26 ... ] cylinder index
+						// 120000 * 200 * 522 cylinders 12,000,000,000
+						// we don't need site.x previous definition
+						// we do need to add cylinder ID and chromosome
+						// printf("found x\n");
+						// 26813034
+						d_recorde[id].site.x = id_chromosome; 
+						d_recorde[id].site.y = (dev_chromatinStart[newindex]+j) + TOTALBP * id_cylinder;  
+						d_recorde[id].site.z = 3+minindex;
+						d_recorde[id].site.w = 0;
+						if (d_recorde[id].site.y == 8290192) {
+							printf("Voxel Found!\n");
+							printf("Related chromosome type :: %d\n", dev_chromosome_type[id_chromosome]);
+							printf("Related chromosome ID :: %d\n", id_chromosome);
+							printf("Related cylinder ID :: %d\n", id_cylinder);
+							printf("Related index :: %d %d %d\n", index.x, index.y, index.z);
+							printf("voxel related pos original :: %f %f %f\n", 
+								d_edrop[id].position.x, 
+								d_edrop[id].position.y, 
+								d_edrop[id].position.z);
+							printf("voxel related phy energy :: %f", d_edrop[id].e);
+
+						}
+					}
+					flag=1;
+				}
+			}
+			if(flag) break;
+		}
+		// Do all 6 walls * 4 each
+		// CURRENT UPDATE 05/20/2022 **************************************
+		// *******************************************************************
+		// *******************************************************************
+		// *******************************************************************
+		// *******************************************************************
+		// *******************************************************************
+		if (flag == 0) { // still not found
+
+			for(int i = 0; i < 24 && flag == 0; i++) // +6 walls
+			{
+				// printf("Checking segment number %d\n", i);
+				int newdelta = delta;
+				// conversions
+				// the first 12 are in the current voxel so we don't need to change delta
+				// 
+				if (i >= 12) { // xy xz yz
+					if (i < 16)  // xy +1z
+						newdelta = delta + NUCLEUS_DIM_META*NUCLEUS_DIM_META;
+					else if (i < 20) // xz +1y
+						newdelta = delta + NUCLEUS_DIM_META;
+					else // yz +1x
+						newdelta = delta + 1;
+				}
+				int newindex = newdelta * 12 + i % 12;
+
+				// if (i == 13) {
+				// 	printf("ID check %d %d\n", newindex, delta);
+				// }
+
+				// ************flag changed Z
+				// printf("New index vs total volume :: %d vs %d\n", newindex, NUCLEUS_DIM_META*NUCLEUS_DIM_META*NUCLEUS_DIM_Z_META * 12);
+				if(newindex<0 || newindex >= NUCLEUS_DIM_META*NUCLEUS_DIM_META*NUCLEUS_DIM_Z_META * 12) continue;
+				
+				int type = dev_segmentType[newindex];
+				// if (i == 13) { 
+				// 	printf("Type check %d\n", type);
+				// }
+				// printf("Type = %d\n", type);
+				if(type==-1 || type==0) continue;
+
+				float3 pos_within_voxel = pos2local(1, pos_cur_target, newdelta);
+				// array <int, 2> subs = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+				// printf("Current pos in the voxel :: %0.2f %0.2f %0.2f\n", pos_within_voxel.x, pos_within_voxel.y, pos_within_voxel.z);
+				newpos = PosToWall(type, pos_within_voxel, i % 12);
+				// printf("Id %d and relative poistion: %0.2f %0.2f %0.2f\n", i, newpos.x, newpos.y, newpos.z);
+				if(type<7)
+				{
+					// if(newpos.x<(min1-SPACETOBODER) || newpos.y<(min2-SPACETOBODER) || newpos.z<(min3-SPACETOBODER) ||newpos.x>(max1+SPACETOBODER)
+					// || newpos.y>(max2+SPACETOBODER) || newpos.z>(max3+SPACETOBODER))
+					// 	continue;
+					chrom=dev_segmentChrom;
+					chromNum=SEGMENT_BP_NUM_META;
+				}
+				else {
+					// it's an error :)
+				}
+				if(flag) break;
+				for(int j=0;j<chromNum;j++) // 17 SEGMENT
+				{
+					// can take the size of base into consideration, distance should be distance-r;
+					mindis=100,minindex=-1;
+					distance[0] = caldistanceMeta(newpos, chrom[j].base) - RBASE - RPHYS;
+					distance[1] = caldistanceMeta(newpos, chrom[j].left) - RSUGAR - RPHYS;
+					distance[2] = caldistanceMeta(newpos, chrom[j].right) - RSUGAR - RPHYS;
+					
+					for(int iii=0;iii<3;iii++)
+					{
+						if(mindis>distance[iii])
+						{
+							mindis=distance[iii];
+							minindex=iii;
+						}
+					}
+					if(mindis<0)
+					{
+						if(minindex>0)
+						{
+							// id is correct in the sense that it belongs to the 
+							// event radical id
+							// so we can record here anything
+							// but what we need is the Chromosome ID to distinguish different DNA
+							// base pair ID for damage calculations
+							// and right or left dmg pair.
+							// printf("Found something xD\n");
+							d_recorde[id].site.x = id_chromosome;  // 92 ? 
+							d_recorde[id].site.y = (dev_segmentStart[newindex]+j) + TOTALBP_META * id_cylinder;  
+							d_recorde[id].site.z = 3+minindex; // left or right pair
+							d_recorde[id].site.w = 0; // phys or chem
+							// if (j == 7) {
+							// 	printf("Segment Found\n");
+							// 	printf("voxel :: %d %d %d\n", index.x, index.y, index.z);
+							// 	printf("    voxel id :: %d\n", delta);
+							// 	printf("new voxel id :: %d\n", newdelta);
+							// 	printf("pos original :: %f %f %f\n", d_edrop[id].position.x, d_edrop[id].position.y, d_edrop[id].position.z);
+							// 	printf("pos cylinder :: %f %f %f\n", pos_cur_target.x, pos_cur_target.y, pos_cur_target.z);
+							// 	printf("pos within voxel :: %f %f %f\n", pos_within_voxel.x, pos_within_voxel.y, pos_within_voxel.z);
+							// 	printf("pos seg   :: %f %f %f\n", newpos.x, newpos.y, newpos.z);
+							// 	printf("%d %d  %d %d\n", id_chromosome, id_cylinder, d_recorde[id].site.y, d_recorde[id].site.z);
+							// }
+						}
+						flag=1; // found
+						break;
+					}
+				}
+				if(flag) break;
+			}
+		}	
+		//if(id%(blockDim.x*gridDim.x)==0) printf("id is %d\n", id);
+		id+=blockDim.x*gridDim.x;//*/
+	}
+	cuseed[id%MAXNUMPAR2_META]=localState;
+}//*/
+#endif
+/***********************************************************************************/
+
+Edeposit* readStage(int *numPhy, int mode, int file_id)
+/*******************************************************************
+c*    Reads electron reactive events from physics stage result     *
+c*    Setup electron events as a list for the DNA damages          *
+output *effphy 
+Number of effective Physics damage
+c******************************************************************/
+{
+	int start,stop;
+	float data[4];
+	// ifstream infile;
+	// if(mode==0) {infile.open("./Results/realdata/1/totalphy.dat",ios::binary);
+	// printf("physics results: Reading ./Results/realdata/1/totalphy.dat\n");}
+	// else {infile.open("./Results/totalchem.dat",ios::binary);
+	// printf("physics results: Reading ./Results/totalchem.dat\n");}
+	Edeposit *hs = NULL;
+	int len = 0, prev_len = 0;
+	{
+		// cout << file_id << " ";
+		ifstream infile;
+		if(mode==0) {
+			string input = REALTIME_FILEIN + to_string(file_id) + "/totalphy.dat"; 
+			infile.open(input,ios::binary);
+			// printf("physics results: Reading %s\n", input.c_str());
+		}	
+		else {
+			string input = REALTIME_FILEIN + to_string(file_id) + FILEOH + ".dat";
+			infile.open(input,ios::binary);
+			// printf("chemistry results: Reading %s\n", input.c_str());
+		}
+		start=infile.tellg();
+		infile.seekg(0, ios::end);
+		stop=infile.tellg();
+		len=(stop-start)/16;
+		if(len==0) { infile.close(); return hs; }
+		infile.seekg(0, ios::beg);
+		// printf("Number of radicals = %d\n", len);
+		// sarray = (structName **) realloc(sarray, (sarray_len + offset) * sizeof(structName *));
+		hs = (Edeposit *)malloc(sizeof(Edeposit)*(prev_len + len));
+		// printf("hit\n");
+		// printf("Total current Number of radicals = %d\n", prev_len + len);
+
+		for(int j=prev_len;j<prev_len + len;j++)
+		{
+			infile.read(reinterpret_cast <char*> (&data), sizeof(data));
+			// else
+			// 	infile.read(reinterpret_cast <char*> (&data3), sizeof(data3));	
+			// if (j < 8) printf("Mode = %d\n", mode);
+			// if (file_id == 40)
+			// 	if(j < 8 + prev_len) printf("x y z e %f %f %f %f\n", data[0],data[1],data[2],data[3]);
+			// if(mode == 1 && j<8 + prev_len) printf("x y z %f %f %f\n", data3[0],data3[1],data3[2]);
+			hs[j].position.x=data[0];
+			hs[j].position.y=data[1];
+			hs[j].position.z=data[2];
+			if(mode==0) hs[j].e=data[3];
+			else hs[j].e=1-PROBCHEM;
+		} 
+		prev_len += len;
+		infile.close();
+	} 
+	// cout << endl;
+	(*numPhy) += prev_len;
+ 	return hs;
+}
 }
