@@ -1556,13 +1556,13 @@ c******************************************************************/
 		// cout << file_id << " ";
 		std::ifstream infile;
 		if(mode==0) {
-			string input = REALTIME_FILEIN + to_string(file_id) + "/totalphy.dat"; 
+			string input = "./output/totalphy.dat"; 
 			infile.open(input,ios::binary);
 			// printf("physics results: Reading %s\n", input.c_str());
 		}	
 		else {
-			string input = REALTIME_FILEIN + to_string(file_id) + FILEOH + ".dat";
-			infile.open(input,ios::binary);
+			//string input = REALTIME_FILEIN + to_string(file_id) + FILEOH + ".dat";
+			//infile.open(input,ios::binary);
 			// printf("chemistry results: Reading %s\n", input.c_str());
 		}
 		start=infile.tellg();
