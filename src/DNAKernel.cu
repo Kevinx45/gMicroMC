@@ -601,11 +601,20 @@ void DNAList::run()
 	cudaMalloc((void**)&dev_edrop,totalphy*sizeof(Edeposit));
 	cudaMemcpy(dev_edrop, edrop, totalphy*sizeof(Edeposit), cudaMemcpyHostToDevice);
 	free(edrop);
+
+	int simMode = document["simMode"].GetInt();
 	
 	combinePhysics* d_recorde;
 	CUDA_CALL(cudaMalloc((void**)&d_recorde,sizeof(combinePhysics)*totalphy));
+	if (simMode==0){
 	phySearch<<<NRAND/256,256>>>(totalphy, dev_edrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
 								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recorde);
+	}
+	else
+	{
+	 phySearchMeta<<<NRAND/256,256>>>(totalphy, dev_edrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
+								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recorde);
+	}
 	CUDA_CALL(cudaDeviceSynchronize());
 	CUDA_CALL(cudaFree(dev_edrop));
 
@@ -629,20 +638,19 @@ void DNAList::run()
 	combinePhysics* d_recordc;
 	CUDA_CALL(cudaMalloc((void**)&d_recordc,sizeof(combinePhysics)*totalchem));
 
-	int simMode = document["simMode"].GetInt();
   	if (simMode==0){
     	printf("G0/G1 Phase simulation\n");
     	chemSearch<<<NRAND/256,256>>>(totalchem, dev_chemdrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
 								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recordc);
+	}
+	else
+	{
+	chemSearchMeta<<<NRAND/256,256>>>(totalchem, dev_chemdrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
+								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recordc);
+	}
 		cudaDeviceSynchronize();
 		CUDA_CALL(cudaFree(dev_chemdrop));
      
-  	}
-  	else if (simMode==1){
-    	printf("Metaphase simulation\n");
-    	//Code to do metaphase chemsearch
-  	}
-  else{printf("Invalid simMode. simMode should be 0(G0/G1) or 1(metaphase).\n");}
 
 
 	combinePhysics* recordc=(combinePhysics*)malloc(sizeof(combinePhysics)*totalchem);		 
