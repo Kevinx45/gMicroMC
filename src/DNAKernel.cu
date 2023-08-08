@@ -1,4 +1,5 @@
 #include "DNAKernel.cuh"
+#include "DNAKernelMeta.cuh"
 __constant__  int neighborindex[27];
 __constant__ float min1, min2, min3, max1, max2, max3;
 __constant__  float d_rDNA[72];
@@ -612,8 +613,11 @@ void DNAList::run()
 	}
 	else
 	{
-	 phySearchMeta<<<NRAND/256,256>>>(totalphy, dev_edrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
-								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recorde);
+	 phySearchMeta<<<NRAND/256,256>>>(totalphy, dev_edrop, 
+					dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom, dev_segmentChrom,
+											dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recorde,
+											dev_chromosome, dev_chromosome_type,
+										dev_segmentIndex, dev_segmentStart, dev_segmentType);
 	}
 	CUDA_CALL(cudaDeviceSynchronize());
 	CUDA_CALL(cudaFree(dev_edrop));
@@ -645,8 +649,11 @@ void DNAList::run()
 	}
 	else
 	{
-	chemSearchMeta<<<NRAND/256,256>>>(totalchem, dev_chemdrop, dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom,
-								dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recordc);
+	chemSearchMeta<<<NRAND/256,256>>>(totalchem, dev_chemdrop, 
+					dev_chromatinIndex,dev_chromatinStart,dev_chromatinType, dev_straightChrom, dev_segmentChrom,
+											dev_bendChrom, dev_straightHistone, dev_bendHistone, d_recordc,
+											dev_chromosome, dev_chromosome_type,
+											dev_segmentIndex, dev_segmentStart, dev_segmentType);
 	}
 		cudaDeviceSynchronize();
 		CUDA_CALL(cudaFree(dev_chemdrop));
