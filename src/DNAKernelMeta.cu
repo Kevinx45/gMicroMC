@@ -1561,7 +1561,7 @@ c******************************************************************/
 			// printf("physics results: Reading %s\n", input.c_str());
 		}	
 		else {
-			string input = "prechemRes.dat";
+			string input = "./output/prechemRes.dat";
 			infile.open(input,ios::binary);
 			// printf("chemistry results: Reading %s\n", input.c_str());
 		}
