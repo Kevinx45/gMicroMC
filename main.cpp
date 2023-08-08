@@ -116,6 +116,7 @@ int main()
 
 		ddl.run();
 		ddl.saveResults();
+    std::cout << "Sucessfully Ran Metaphase" << std::endl;
 
 		
 		// system("cp ./output/totalphy.dat ./meta/Results");
