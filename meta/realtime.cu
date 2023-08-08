@@ -1427,7 +1427,7 @@ chemReact* combinePhy(int* totalphy, combinePhysics* recorde, int mode, int file
     }
 	// printf("counts after probabilities %d\n", num);
     if(num==0) {(*totalphy)=0;return NULL;}
-	string output = REALTIME_FILEOUT + to_string(file_id) + "_" + FILEOHNAME + ".txt";
+	string output = "./output/totalRecord.txt";
 	cout << output << endl;
 
 	ofstream fout;
@@ -1579,7 +1579,7 @@ void damageAnalysis(int counts, chemReact* recordpos, int numFiles, float dose)
         }
     }
 
-    FILE* fp = fopen("./Results/finalstat.txt","a");
+    FILE* fp = fopen("./output/finalstatmeta.txt","a");
 	int ssbs = 0, dsbs = 0;
 	for (int i = 0; i < 3; i++) ssbs += results[i];
 	for (int i = 3; i < 7; i++) dsbs += results[i];
