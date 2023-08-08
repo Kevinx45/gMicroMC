@@ -114,6 +114,9 @@ int main()
     		std::cout << SegmentChrom[i].base.z << endl;
     		}
 
+		ddl.run();
+		ddl.saveResults();
+
 		
 		// system("cp ./output/totalphy.dat ./meta/Results");
 		// system("cd ./meta && ./compile_cuMC");
