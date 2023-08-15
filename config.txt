@@ -41,7 +41,7 @@
 	"ROICenterZ":0,
 
 
-	"nPar": 1, // particle number per run
+	"nPar": 10, // particle number per run
   "maxRun": 1, // maximal runs. Maximal particle simulated=nPar*nRun
 	"sourceModel": 1, // 0 for PSF file, 1 for random in sphere. 
 	"sourceEnergyModel": 0, // only works if sourceModel!=0. 0 for not using histogram files and uniform inside emin and emax
@@ -87,7 +87,7 @@
 
 	"fileForChemPos":"./output/chemRes.dat",
 	"fileForOutputDamage":"./output/finalstat.txt",
-	"compareEnergy":8711450, // in eV
+	"compareEnergy":10, // in eV
 	"repTimes":1,
 
 //DNA Metaphase
